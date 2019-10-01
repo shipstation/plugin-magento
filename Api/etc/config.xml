@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <shipstation_general>
+            <shipstation>
+                <export_price>0</export_price>
+                <import_discounts>1</import_discounts>
+                <import_child_products>1</import_child_products>
+                <custom_invoicing>0</custom_invoicing>
+                <ship_api_key></ship_api_key>
+            </shipstation>
+        </shipstation_general>
+    </default>
+</config>

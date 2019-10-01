@@ -1,0 +1,23 @@
+<?php /* @var $block \Auctane\Api\Block\System\Config\GenerateApiKeyButton */ ?>
+<script>
+  require([
+    'jquery',
+  ], function (jQuery) {
+    function generateAndSaveApiKey () {
+      return new Ajax.Request("<?= $block->escapeUrl($block->getApiKeyGenerationUrl()) ?>", {
+        loaderArea: true,
+        asynchronous: true,
+        onSuccess: function (response) {
+          var data = JSON.parse(response.responseText)
+          jQuery('#shipstation_general_shipstation_ship_api_key').val(data.key)
+        }
+      })
+    }
+
+    jQuery('#generate_and_save_api_key').on('click', function () {
+      generateAndSaveApiKey()
+    })
+  })
+</script>
+
+<?= $block->getButtonHtml() ?>

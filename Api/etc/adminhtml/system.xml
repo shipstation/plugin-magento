@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="shipstation" translate="label" sortOrder="100">
+            <label>ShipStation</label>
+        </tab>
+        <section id="shipstation_general" translate="label" type="text" sortOrder="300"
+                 showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <tab>shipstation</tab>
+            <label>General Settings</label>
+            <resource>Auctane_Api::admin_config</resource>
+            <group id="shipstation" showInDefault="1">
+                <field id="ship_api_key" translate="label" type="text" sortOrder="3"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>ShipStation Api Key</label>
+                    <frontend_model>Auctane\Api\Block\System\Config\ApiKey</frontend_model>
+                </field>
+                <field id="build_indexes" translate="label comment tooltip" type="button"
+                       sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <frontend_model>Auctane\Api\Block\System\Config\GenerateApiKeyButton</frontend_model>
+                </field>
+                <field id="export_price" translate="label" type="select" sortOrder="5"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Price Export Type</label>
+                    <source_model>Auctane\Api\Model\Config\Source\Price</source_model>
+                </field>
+                <field id="import_discounts" translate="label" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Import Discounts</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="attribute" translate="label" type="multiselect" sortOrder="15"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Export custom attributes as custom options</label>
+                    <source_model>Auctane\Api\Model\Config\Source\Attribute</source_model>
+                    <can_be_empty>1</can_be_empty>
+                </field>
+                <field id="import_child_products" translate="label" type="select" sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Import Child Products</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="custom_invoicing" translate="label" type="select" sortOrder="25"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Custom/Auto Invoicing Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>
