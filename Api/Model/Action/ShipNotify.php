@@ -250,14 +250,12 @@ class ShipNotify
                 }
 
                 list($xmlItem) = $xmlItemResult[$count];
-            } elseif (is_array($xmlItemResult)) {
+            } elseif (is_array($xmlItemResult) && !empty($xmlItemResult)) {
                 list($xmlItem) = $xmlItemResult;
             } else {
                 $xmlItem = null;
             }
 
-            //if (!empty($xmlItemResult)) {
-            //list($xmlItem) = $xmlItemResult;
             if ($xmlItem) {
                 $itemSku = trim($xmlItem->SKU);
                 // store quantity by order item ID, not by SKU
@@ -270,8 +268,6 @@ class ShipNotify
                 }
 
             }
-
-            //}
 
             //Add child products into the shipments
             if (!$this->_importChild) {
