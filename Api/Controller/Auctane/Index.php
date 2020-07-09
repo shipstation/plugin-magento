@@ -56,7 +56,8 @@ class Index extends Action implements CsrfAwareActionInterface
         Export $export,
         ShipNotify $shipNotify,
         RedirectFactory $redirectFactory
-    ) {
+    )
+    {
         parent::__construct($context);
 
         $this->storeManager = $storeManager;
@@ -73,7 +74,8 @@ class Index extends Action implements CsrfAwareActionInterface
      */
     public function createCsrfValidationException(
         RequestInterface $request
-    ): ?InvalidRequestException {
+    ): ?InvalidRequestException
+    {
         return null;
     }
 
