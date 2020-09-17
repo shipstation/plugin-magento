@@ -243,6 +243,10 @@ class Export
             "ShippingMethod",
             $order->getShippingDescription()
         );
+        $this->_addFieldToXML(
+            "ShippingCode",
+            $order->getShippingMethod()
+        );
         //Check for the price type
         if ($this->_priceType) {
             $orderTotal = $order->getBaseGrandTotal();
