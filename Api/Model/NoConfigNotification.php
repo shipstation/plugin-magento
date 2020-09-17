@@ -46,7 +46,7 @@ class NoConfigNotification implements \Magento\Framework\Notification\MessageInt
    public function getText()
    {
        // message text
-       return "The ShipStation Shipping Rates plugin has been installed but not configured. Please log in to ShipStation and configure Magento from there.";
+       return "The ShipStation Shipping Rates plugin has been installed but not configured. Please log in to ShipStation and configure Magento from there. This message can be removed by disabling ShipStation in the Shipping Methods configuration.";
    }
    public function getSeverity()
    {
