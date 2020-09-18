@@ -241,12 +241,9 @@ class Export
         //Get the shipping method name and carrier name
         $this->_addFieldToXML(
             "ShippingMethod",
-            $order->getShippingDescription()
+            "{$order->getShippingDescription()}|{$order->getShippingMethod()}"
         );
-        $this->_addFieldToXML(
-            "ShippingCode",
-            $order->getShippingMethod()
-        );
+
         //Check for the price type
         if ($this->_priceType) {
             $orderTotal = $order->getBaseGrandTotal();
