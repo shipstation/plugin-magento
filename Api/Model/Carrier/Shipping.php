@@ -164,7 +164,7 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
             // expecting that this method will be returned as a verification. Use the verify endpoint. 
             // Otherwise, it's a standard rates request, use the rate endpoint.
             $currentMethod = $this->cart->getQuote()->getShippingAddress()->getShippingMethod();
-            error_log("Method: " . $currentMethod);
+
             if($currentMethod && $this->_startsWith($currentMethod, $this->_code)) $isValidation = true;
             else $isValidation = false;
             
@@ -184,7 +184,7 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
                 'option_key' => $optionKey,
                 'marketplace_key' => $marketplaceKey
             );
-            error_log(json_encode($shippingRequest));
+
             // Call ShipStation Endpoint
             $response = $this->_callApi ($ratesUrl, json_encode($shippingRequest));
     
