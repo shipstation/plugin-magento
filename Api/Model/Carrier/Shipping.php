@@ -148,16 +148,14 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
             $scopeTypeDefault = \Magento\Framework\App\Config\ScopeConfigInterface::SCOPE_TYPE_DEFAULT;
     
             // Get required data
-            $option_key = $this->_scopeConfig->getValue('carriers/shipstation/option_key', $scopeTypeDefault);
-            $marketplace_key = $this->_scopeConfig->getValue('carriers/shipstation/marketplace_key', $scopeTypeDefault);
-            $rates_url = $this->_scopeConfig->getValue('carriers/shipstation/rates_url', $scopeTypeDefault);
-            $verify_url = $this->_scopeConfig->getValue('carriers/shipstation/verify_url', $scopeTypeDefault);
+            $optionKey = $this->_scopeConfig->getValue('carriers/shipstation/option_key', $scopeTypeDefault);
+            $marketplaceKey = $this->_scopeConfig->getValue('carriers/shipstation/marketplace_key', $scopeTypeDefault);
+            $ratesUrl = $this->_scopeConfig->getValue('carriers/shipstation/rates_url', $scopeTypeDefault);
     
             // Validate
-            if (empty($option_key)) return false;
-            if (empty($marketplace_key)) return false;
-            if (empty($rates_url)) return false;
-            if (empty($verify_url)) return false;
+            if (empty($optionKey)) return false;
+            if (empty($marketplaceKey)) return false;
+            if (empty($ratesUrl)) return false;
     
             // Creation of the data contract
             $shippingRequest = array();
@@ -166,39 +164,36 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
             // expecting that this method will be returned as a verification. Use the verify endpoint. 
             // Otherwise, it's a standard rates request, use the rate endpoint.
             $currentMethod = $this->cart->getQuote()->getShippingAddress()->getShippingMethod();
+            error_log("Method: " . $currentMethod);
             if($currentMethod && $this->_startsWith($currentMethod, $this->_code)) $isValidation = true;
             else $isValidation = false;
-
+            
             if($isValidation)
             {
-                // Strip out the carrier code to leave the quote UUID
+                // Strip out the carrier code to leave the quote UUID and supply this
                 $currentMethod = str_replace($this->_code . '_', '', $currentMethod);
-                $shippingRequest['code'] = $currentMethod;
-                $endPoint = $verify_url;
+                $shippingRequest['quote_id'] = $currentMethod;
             }
-            else
-            {
-                // Add cart and shipping data
-                $shippingRequest = $this->_getCartDetails($shippingRequest, $request);
-                $endPoint = $rates_url;
-            }
+
+            // Add cart and shipping data
+            $shippingRequest = $this->_getCartDetails($shippingRequest, $request);
 
             // Add standard connection details
             $shippingRequest['connection_options'] = array
             (
-                'option_key' => $option_key,
-                'marketplace_key' => $marketplace_key
+                'option_key' => $optionKey,
+                'marketplace_key' => $marketplaceKey
             );
-
+            error_log(json_encode($shippingRequest));
             // Call ShipStation Endpoint
-            $response = $this->_callApi ($endPoint, json_encode($shippingRequest));
+            $response = $this->_callApi ($ratesUrl, json_encode($shippingRequest));
     
             // If it didn't go so well, log the response info and don't pass any methods back
             if(!$response->isOk())
             {
                 $this->_logger->error('[SHIPSTATION] From: ' . $this->class->getName());
                 $this->_logger->error('[SHIPSTATION] Status Code: ' . $response->getStatusCode());
-                $this->_logger->error('[SHIPSTATION] URL: ' . $endpoint);
+                $this->_logger->error('[SHIPSTATION] URL: ' . $ratesUrl);
                 unset($shippingRequest['connection_options']); // Remove credentials from log
                 $this->_logger->error('[SHIPSTATION] Request: ' . json_encode($shippingRequest));
                 $this->_logger->error('[SHIPSTATION] Response: ' . $response->getBody());
@@ -207,14 +202,13 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
 
             // Create object from response and add returned delivery services.
             $shippingResponse = json_decode($response->getBody());
-    
+  
             /** @var \Magento\Shipping\Model\Rate\Result $result */
             $result = $this->rateResultFactory->create();
     
-            if($isValidation) $result->append($this->_createShippingMethod($shippingResponse));
-            else
-                foreach($shippingResponse->options as $deliveryOption)
-                    $result->append($this->_createShippingMethod($deliveryOption));
+            // Add each of the returned rates to the Result object
+            foreach($shippingResponse->options as $deliveryOption)
+                $result->append($this->_createShippingMethod($deliveryOption));
     
             return $result;
         }
