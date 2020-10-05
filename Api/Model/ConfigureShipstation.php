@@ -38,7 +38,7 @@ class ConfigureShipstation implements ConfigureShipstationInterface
     /**
      * {@inheritdoc}
      */
-    public function configureShipstation($option_key, $marketplace_key, $rates_url, $verify_url)
+    public function configureShipstation($option_key, $marketplace_key, $rates_url)
     {
         if(!$this->authenticator->authenticate())
         {
@@ -52,7 +52,6 @@ class ConfigureShipstation implements ConfigureShipstationInterface
             $this->configWriter->save('carriers/shipstation/option_key', $option_key, $scopeType);
             $this->configWriter->save('carriers/shipstation/marketplace_key', $marketplace_key);
             $this->configWriter->save('carriers/shipstation/rates_url', $rates_url, $scopeType);
-            $this->configWriter->save('carriers/shipstation/verify_url', $verify_url, $scopeType);
 
             $this->flush();
 
@@ -60,7 +59,6 @@ class ConfigureShipstation implements ConfigureShipstationInterface
                 'option_key' => $option_key,
                 'marketplace_key' => $marketplace_key,
                 'rates_url'=> $rates_url,
-                'verify_url'=> $verify_url,
             ];
         }
 

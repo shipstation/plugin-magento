@@ -10,5 +10,5 @@ interface ConfigureShipstationInterface {
      * @param string $verify_url
      * @return string
      */
-    public function configureShipstation($option_key, $marketplace_key, $rates_url, $verify_url);
+    public function configureShipstation($option_key, $marketplace_key, $rates_url);
 }
