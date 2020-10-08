@@ -37,9 +37,6 @@ class NoConfigNotification implements \Magento\Framework\Notification\MessageInt
 
         $rates_url = $this->_scopeConfig->getValue('carriers/shipstation/rates_url', $scopeTypeDefault);
         if (empty($rates_url)) return true;
-
-        $verify_url = $this->_scopeConfig->getValue('carriers/shipstation/verify_url', $scopeTypeDefault);
-        if (empty($verify_url)) return true;
        
         return false;
    }

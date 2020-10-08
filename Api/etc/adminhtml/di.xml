@@ -3,7 +3,7 @@
    <type name="Magento\Framework\Notification\MessageList">
        <arguments>
            <argument name="messages" xsi:type="array">
-               <item name="NoConfigNotification" xsi:type="string">Auctane\Api\Model\Notification</item>
+               <item name="NoConfigNotification" xsi:type="string">Auctane\Api\Model\NoConfigNotification</item>
            </argument>
        </arguments>
    </type>
