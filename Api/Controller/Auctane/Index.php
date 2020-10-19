@@ -11,7 +11,10 @@ use Magento\Backend\Model\View\Result\RedirectFactory;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\StoreManagerInterface;
+use Zend\Http\Response;
+use Zend\Json\Server\Response\Http;
 
 class Index extends Action
 {
@@ -122,6 +125,9 @@ class Index extends Action
                     // if there hasn't been an error then "200 OK" is given
                     break;
             }
+        } catch (LocalizedException $e) {
+            $this->_response->setStatusCode(Response::STATUS_CODE_401);
+            $result = $this->dataHelper->fault(Response::STATUS_CODE_401, $e->getMessage());
         } catch (Exception $fault) {
             $result = $this->dataHelper->fault($fault->getCode(), $fault->getMessage());
         }
