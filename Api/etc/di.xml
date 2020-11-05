@@ -1,7 +1,20 @@
 <?xml version="1.0"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="debug_management" xsi:type="object">Auctane\Api\Console\Command\DebugManagementCommand</item>
+            </argument>
+        </arguments>
+    </type>
+
     <type name="Magento\Framework\App\Request\CsrfValidator">
         <plugin name="csrf_validator_skip" type="Auctane\Api\Plugin\CsrfValidatorSkip"/>
     </type>
+
+    <type name="Auctane\Api\Controller\Auctane\Index">
+        <plugin name="auctane_index" type="Auctane\Api\Plugin\Controller\Auctane\IndexPlugin"/>
+    </type>
+
 </config>

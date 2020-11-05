@@ -126,8 +126,8 @@ class Index extends Action
                     break;
             }
         } catch (LocalizedException $e) {
-            $this->_response->setStatusCode(Response::STATUS_CODE_401);
-            $result = $this->dataHelper->fault(Response::STATUS_CODE_401, $e->getMessage());
+            $this->_response->setStatusCode(Response::STATUS_CODE_400);
+            $result = $this->dataHelper->fault(Response::STATUS_CODE_400, $e->getMessage());
         } catch (Exception $fault) {
             $result = $this->dataHelper->fault($fault->getCode(), $fault->getMessage());
         }
