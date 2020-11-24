@@ -10,10 +10,13 @@ use Magento\Backend\Model\Auth\Credential\StorageInterface;
 use Magento\Backend\Model\View\Result\RedirectFactory;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\App\Request\InvalidRequestException;
+use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
-class Index extends Action
+class Index extends Action implements CsrfAwareActionInterface
 {
     /**
      * @var StoreManagerInterface
@@ -63,6 +66,23 @@ class Index extends Action
         $this->export = $export;
         $this->shipNotify = $shipNotify;
         $this->redirectFactory = $redirectFactory;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createCsrfValidationException(
+        RequestInterface $request
+    ): ?InvalidRequestException {
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function validateForCsrf(RequestInterface $request): ?bool
+    {
+        return true;
     }
 
     /**
