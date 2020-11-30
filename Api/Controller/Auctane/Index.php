@@ -12,6 +12,7 @@ use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Store\Model\Store;
 
 class Index extends Action
 {
@@ -113,8 +114,7 @@ class Index extends Action
         try {
             switch ($action) {
                 case 'export':
-                    $storeId = $this->storeManager->getStore()->getId();
-                    $result = $this->export->process($request, $this->getResponse(), $storeId);
+                    $result = $this->export->process($request, $this->getResponse(), Store::DEFAULT_STORE_ID);
                     break;
 
                 case 'shipnotify':
