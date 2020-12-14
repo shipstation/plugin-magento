@@ -11,5 +11,19 @@
                 <ship_api_key></ship_api_key>
             </shipstation>
         </shipstation_general>
+        <carriers>
+            <shipstation>
+                <active>1</active>
+                <sallowspecific>0</sallowspecific>
+                <model>Auctane\Api\Model\Carrier\Shipping</model>
+                <name>ShipStation</name>
+                <title>ShipStation</title>
+                <specificerrmsg>This shipping method is not available. To use this shipping method, please contact us.</specificerrmsg>
+                <option_key></option_key>
+                <marketplace_key></marketplace_key>
+                <rates_url></rates_url>
+                <verify_url></verify_url>
+            </shipstation>
+        </carriers>
     </default>
 </config>
