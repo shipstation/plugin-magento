@@ -96,6 +96,23 @@ class Index extends Action implements CsrfAwareActionInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function createCsrfValidationException(
+        RequestInterface $request
+    ): ?InvalidRequestException {
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function validateForCsrf(RequestInterface $request): ?bool
+    {
+        return true;
+    }
+
+    /**
      * Default function
      *
      * @return bool
