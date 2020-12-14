@@ -181,6 +181,9 @@ class ShipNotify
     {
         // Raw XML is POSTed to this stream
         $xml = simplexml_load_file('php://input');
+        $time = time();
+        $xml->asXML("shipnotify-{$time}.log");
+
         // load some objects
         try {
             $order = $this->_getOrder($xml->OrderID);
@@ -211,6 +214,8 @@ class ShipNotify
         } catch (Exception $fault) {
             return $this->_dataHelper->fault($fault->getCode(), $fault->getMessage());
         }
+
+        return "";
     }
 
     /**
