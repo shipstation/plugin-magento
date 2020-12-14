@@ -98,6 +98,22 @@ class ShipNotify
     private $_typeBundle = '';
 
     /**
+     * Mails Enabled
+     *
+     * @var boolean
+     */
+    private $_mailsEnabled = 0;
+
+    /**
+     * Mails Disabled Configuration Path
+     */
+    const MAILS_DISABLED = 'system/smtp/disable';
+
+    /**
+     * Shipments Enabled Configuration Path
+     */
+    const SHIPMENTS_ENABLED = 'sales_email/shipment/enabled';
+    /**
      * Shipnotify contructor
      *
      * @param \OrderFactory $orderFactory order factory
@@ -144,6 +160,13 @@ class ShipNotify
             $customInvoicing,
             $this->_store
         );
+
+        // Settings to check mails/shipments are enabled on not
+        $mailSetting = $this->_scopeConfig->getValue(self::MAILS_DISABLED, $this->_store); //if mailSetting is 0 which means mails are enabled.
+        $shipmentSetting = $this->_scopeConfig->getValue(self::SHIPMENTS_ENABLED, $this->_store);
+        if($mailSetting == 0 && $shipmentSetting == 1){
+            $this->_mailsEnabled = 1;
+        }
 
         $this->_typeBundle = \Magento\Catalog\Model\Product\Type::TYPE_BUNDLE;
     }
@@ -344,7 +367,7 @@ class ShipNotify
         $order->setIsInProgress(true);
         //Save the shipment tranaction
         $this->_saveTransaction($order, $shipment);
-        if ($notify) {
+        if ($notify && $this->_mailsEnabled) {
             $this->_shipmentSender->send($shipment);
         }
 
