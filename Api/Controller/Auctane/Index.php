@@ -15,8 +15,11 @@ use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\Exception\AuthorizationException;
+use Zend\Http\Response;
+use Zend\Json\Server\Response\Http;
 
 class Index extends Action implements CsrfAwareActionInterface
 {
@@ -82,24 +85,6 @@ class Index extends Action implements CsrfAwareActionInterface
      */
     public function createCsrfValidationException(
         RequestInterface $request
-    ): ?InvalidRequestException
-    {
-        return null;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function validateForCsrf(RequestInterface $request): ?bool
-    {
-        return true;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createCsrfValidationException(
-        RequestInterface $request
     ): ?InvalidRequestException {
         return null;
     }
@@ -146,6 +131,9 @@ class Index extends Action implements CsrfAwareActionInterface
                         // if there hasn't been an error then "200 OK" is given
                         break;
                 }
+            } catch (LocalizedException $e) {
+                $this->_response->setStatusCode(Response::STATUS_CODE_400);
+                $result = $this->dataHelper->fault(Response::STATUS_CODE_400, $e->getMessage());
             } catch (Exception $fault) {
                 $result = $this->dataHelper->fault($fault->getCode(), $fault->getMessage());
             }
