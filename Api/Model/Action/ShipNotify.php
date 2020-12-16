@@ -186,8 +186,9 @@ class ShipNotify
      */
     public function process()
     {
+        $xml = simplexml_load_file('php://input');
+
         if ($this->_scopeConfig->getValue('shipstation_general/shipstation/debug_mode')) {
-            $xml = simplexml_load_file('php://input');
             $time = time();
             $xml->asXML("{$this->directoryList->getPath(DirectoryList::LOG)}/shipnotify-{$time}.log");
         }
