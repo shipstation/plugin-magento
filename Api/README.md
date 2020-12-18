@@ -11,3 +11,4 @@ php -f bin/magento setup:upgrade
 - Generate an API key in Stores -> Configuration -> Shipstation -> 
 Generate and save api key
 - In ShipStation, specify the api key
+
