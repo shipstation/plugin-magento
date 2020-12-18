@@ -17,4 +17,7 @@
         <plugin name="auctane_index" type="Auctane\Api\Plugin\Controller\Auctane\IndexPlugin"/>
     </type>
 
+    <preference for="Auctane\Api\Api\ConfigureShipstationInterface" type="Auctane\Api\Model\ConfigureShipstation"/>
+    <preference for="Auctane\Api\Api\CheckInterface" type="Auctane\Api\Model\Check"/>
+
 </config>
