@@ -2,6 +2,7 @@
 
 namespace Auctane\Api\Model\Action;
 
+use Auctane\Api\Model\WeightAdapter;
 use Exception;
 use Magento\Sales\Api\Data\OrderItemInterface;
 
@@ -108,17 +109,19 @@ class Export
      */
     private $_typeBundle = '';
 
+    /** @var WeightAdapter */
+    private $weightAdapter;
+
     /**
      * Export class constructor
      *
-     * @param \CollectionFactory $order order
-     * @param \ScopeConfigInterface $scopeConfig config
-     * @param \CountryFactory $countryFactory country factory
-     * @param \Config $eavConfig config object
-     * @param \Data $dataHelper helper object
-     * @param \Magento\GiftMessage $giftMessage The gift message.
-     *
-     * @return boolean
+     * @param \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $order order
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig config
+     * @param \Magento\Directory\Model\CountryFactory $countryFactory country factory
+     * @param \Magento\Eav\Model\Config $eavConfig config object
+     * @param \Auctane\Api\Helper\Data $dataHelper helper object
+     * @param \Magento\GiftMessage\Helper\Message $giftMessage The gift message.
+     * @param WeightAdapter $weightAdapter
      */
     public function __construct(
         \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $order,
@@ -126,7 +129,8 @@ class Export
         \Magento\Directory\Model\CountryFactory $countryFactory,
         \Magento\Eav\Model\Config $eavConfig,
         \Auctane\Api\Helper\Data $dataHelper,
-        \Magento\GiftMessage\Helper\Message $giftMessage
+        \Magento\GiftMessage\Helper\Message $giftMessage,
+        WeightAdapter $weightAdapter
     ) {
         $this->_order = $order;
         $this->_scopeConfig = $scopeConfig;
@@ -162,6 +166,8 @@ class Export
         );
 
         $this->_typeBundle = \Magento\Catalog\Model\Product\Type::TYPE_BUNDLE;
+
+        $this->weightAdapter = $weightAdapter;
     }
 
     /**
@@ -241,7 +247,7 @@ class Export
         //Get the shipping method name and carrier name
         $this->_addFieldToXML(
             "ShippingMethod",
-            "{$order->getShippingDescription()}|{$order->getShippingMethod()}"
+            $order->getShippingDescription()
         );
         //Check for the price type
         if ($this->_priceType) {
@@ -428,7 +434,8 @@ class Export
 
                 //Get the parent item from the order item
                 $parentItem = $orderItem->getParentItem();
-                $weight = $orderItem->getWeight();
+                $foreighWeight = $this->weightAdapter->toForeignWeight($orderItem->getWeight());
+
                 if ($this->_priceType) {
                     $price = $orderItem->getBasePrice();
                 } else {
@@ -454,7 +461,8 @@ class Export
                             continue;
                         }
 
-                        $weight = $price = 0;
+                        $price = 0;
+                        $foreighWeight = $this->weightAdapter->toForeignWeight(0);
                     }
 
                     //set the item price from parent item price
@@ -488,7 +496,8 @@ class Export
                     $this->_addFieldToXML("SKU", $orderItem->getSku());
                     $this->_addFieldToXML("Name", '<![CDATA[' . $name . ']]>');
                     $this->_addFieldToXML("ImageUrl", $imageUrl);
-                    $this->_addFieldToXML("Weight", $weight);
+                    $this->_addFieldToXML("Weight", $foreighWeight->getValue());
+                    $this->_addFieldToXML("WeightUnits", $foreighWeight->getUnit());
                     $this->_addFieldToXML("UnitPrice", $price);
                     $this->_addFieldToXML(
                         "Quantity",
