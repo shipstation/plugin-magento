@@ -123,7 +123,8 @@ class Index extends Action implements CsrfAwareActionInterface
         try {
             switch ($action) {
                 case 'export':
-                    $result = $this->export->process($request, $this->getResponse(), Store::DEFAULT_STORE_ID);
+                    $this->getResponse()->setHeader('Content-Type', 'text/xml');
+                    $result = $this->export->process($request);
                     break;
 
                 case 'shipnotify':
@@ -132,7 +133,7 @@ class Index extends Action implements CsrfAwareActionInterface
                     break;
             }
         } catch (LocalizedException $e) {
-            $this->_response->setStatusCode(Response::STATUS_CODE_400);
+            $this->getResponse()->setStatusCode(Response::STATUS_CODE_400);
             $result = $this->dataHelper->fault(Response::STATUS_CODE_400, $e->getMessage());
         } catch (Exception $fault) {
             $result = $this->dataHelper->fault($fault->getCode(), $fault->getMessage());
