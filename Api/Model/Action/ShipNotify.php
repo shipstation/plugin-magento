@@ -2,11 +2,19 @@
 
 namespace Auctane\Api\Model\Action;
 
+use Auctane\Api\Exception\InvalidXmlException;
 use Auctane\Api\Model\OrderDoesNotExistException;
 use Auctane\Api\Model\ShipmentCannotBeCreatedForOrderException;
-use Exception;
 use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Exception\FileSystemException;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Model\Order\Invoice;
 
+
+/**
+ * Class ShipNotify
+ * @package Auctane\Api\Model\Action
+ */
 class ShipNotify
 {
     /**
@@ -181,12 +189,21 @@ class ShipNotify
     /**
      * Perform a notify using POSTed data.
      * See Auctane API specification.
-     *
-     * @return Exception
+     * @return string
+     * @throws FileSystemException
+     * @throws InvalidXmlException
+     * @throws LocalizedException
+     * @throws OrderDoesNotExistException
+     * @throws ShipmentCannotBeCreatedForOrderException
      */
     public function process()
     {
+        libxml_use_internal_errors(true);
         $xml = simplexml_load_file('php://input');
+
+        if (!$xml) {
+            throw new InvalidXmlException(libxml_get_errors());
+        }
 
         if ($this->_scopeConfig->getValue('shipstation_general/shipstation/debug_mode')) {
             $time = time();
@@ -200,12 +217,12 @@ class ShipNotify
             // 'NotifyCustomer' must be "true" or "yes" to trigger email
             $notify = filter_var($xml->NotifyCustomer, FILTER_VALIDATE_BOOLEAN);
             $invoice = $order->prepareInvoice($qtys);
-            $capture = \Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE;
+            $capture = Invoice::CAPTURE_ONLINE;
             $invoice->setRequestedCaptureCase($capture);
             $invoice->addComment(self::COMMENT, $notify);
             $invoice->register();
-            $order->setIsInProcess(true); // updates status on save
-            //Save the invoice transaction
+            $order->setIsInProcess(true);
+
             $this->_saveTransaction($order, $invoice);
             if ($notify) {
                 $this->_invoiceSender->send($invoice);
@@ -214,7 +231,7 @@ class ShipNotify
         }
 
         if ($order->canShip()) {
-            $shipment = $this->_getOrderShipment($order, $qtys, $xml);
+            $this->_getOrderShipment($order, $qtys, $xml);
         } else {
             throw new ShipmentCannotBeCreatedForOrderException($xml->OrderID);
         }
@@ -229,12 +246,12 @@ class ShipNotify
      *
      * @return \Magento\Sales\Model\Order
      */
-    private function _getOrder($orderId)
+    private function _getOrder($incrementId)
     {
         //$order \Magento\Sales\Model\Order
-        $order = $this->_orderFactory->create()->loadByIncrementId($orderId);
+        $order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
         if (!$order->getIncrementId()) {
-            throw new OrderDoesNotExistException($orderId);
+            throw new OrderDoesNotExistException($incrementId);
         }
 
         return $order;
