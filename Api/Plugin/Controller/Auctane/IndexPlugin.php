@@ -47,7 +47,7 @@ class IndexPlugin
         if ($this->scopeConfig->getValue('shipstation_general/shipstation/debug_mode')) {
             $time = (new \DateTime())->format('YmdHis');
 
-            if ($xml = @simplexml_load_file('php://input')) {
+            if ($xml = simplexml_load_file('php://input')) {
                 $xml->asXML("{$this->directoryList->getPath(DirectoryList::LOG)}/shipstation-request-body-{$time}.log");
             }
 

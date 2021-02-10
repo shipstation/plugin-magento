@@ -2,9 +2,19 @@
 
 namespace Auctane\Api\Model\Action;
 
-use Exception;
+use Auctane\Api\Model\WeightAdapter;
+use Magento\Framework\Api\SortOrder;
+use Magento\Framework\App\Request\Http as HttpRequest;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderItemInterface;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\ResourceModel\Order\Collection;
 
+
+/**
+ * Class Export
+ * @package Auctane\Api\Model\Action
+ */
 class Export
 {
     /**
@@ -22,7 +32,7 @@ class Export
      *
      * @var \Magento\Sales\Model\ResourceModel\Order\CollectionFactory
      */
-    private $_order;
+    private $orderCollectionFactory;
 
     /**
      * Scope config
@@ -50,7 +60,7 @@ class Export
      *
      * @var \Magento\GiftMessage\Helper\Message
      */
-    private $_giftMessage;
+    private $giftMessageProvider;
 
     /**
      * Country factory
@@ -108,17 +118,20 @@ class Export
      */
     private $_typeBundle = '';
 
+    /** @var WeightAdapter */
+    private $weightAdapter;
+
+
     /**
      * Export class constructor
      *
-     * @param \CollectionFactory $order order
-     * @param \ScopeConfigInterface $scopeConfig config
-     * @param \CountryFactory $countryFactory country factory
-     * @param \Config $eavConfig config object
-     * @param \Data $dataHelper helper object
-     * @param \Magento\GiftMessage $giftMessage The gift message.
-     *
-     * @return boolean
+     * @param \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $order order
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig config
+     * @param \Magento\Directory\Model\CountryFactory $countryFactory country factory
+     * @param \Magento\Eav\Model\Config $eavConfig config object
+     * @param \Auctane\Api\Helper\Data $dataHelper helper object
+     * @param \Magento\GiftMessage\Helper\Message $giftMessage The gift message.
+     * @param WeightAdapter $weightAdapter
      */
     public function __construct(
         \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $order,
@@ -126,14 +139,15 @@ class Export
         \Magento\Directory\Model\CountryFactory $countryFactory,
         \Magento\Eav\Model\Config $eavConfig,
         \Auctane\Api\Helper\Data $dataHelper,
-        \Magento\GiftMessage\Helper\Message $giftMessage
+        \Magento\GiftMessage\Helper\Message $giftMessage,
+        WeightAdapter $weightAdapter
     ) {
-        $this->_order = $order;
+        $this->orderCollectionFactory = $order;
         $this->_scopeConfig = $scopeConfig;
         $this->_countryFactory = $countryFactory;
         $this->_eavConfig = $eavConfig;
         $this->_dataHelper = $dataHelper;
-        $this->_giftMessage = $giftMessage;
+        $this->giftMessageProvider = $giftMessage;
         //Set the configuartion variable data
         $this->_store = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
         //Price export type
@@ -162,88 +176,72 @@ class Export
         );
 
         $this->_typeBundle = \Magento\Catalog\Model\Product\Type::TYPE_BUNDLE;
+
+        $this->weightAdapter = $weightAdapter;
     }
 
     /**
      * Perform an export according to the given request.
-     *
-     * @param object $request get requested data
-     * @param $response
-     * @param integer $storeId get store id
-     *
-     * @return boolean
+     * @param HttpRequest $request
+     * @return string
      */
-    public function process($request, $response, $storeId)
+    public function process(HttpRequest $request): string
     {
-        try {
-            $response->setHeader('Content-Type', 'text/xml');
+        $from = $this->toDateString($request->getParam('start_date'));
+        $to =  $this->toDateString($request->getParam('end_date'));
+        $page = $request->getParam('page') ?? 1;
 
-            $startDate = strtotime(urldecode($request->getParam('start_date')));
-            $endDate = strtotime(urldecode($request->getParam('end_date')));
-            $page = (int)$request->getParam('page');
+        $this->_xmlData = "<?xml version=\"1.0\" encoding=\"utf-16\"?>\n";
 
-            $from = date('Y-m-d H:i:s', $startDate);
-            $end = date('Y-m-d H:i:s', $endDate);
+        if ($from && $to) {
+            $orders = $this->orderCollectionFactory->create()
+                ->addAttributeToSort(OrderInterface::UPDATED_AT, SortOrder::SORT_DESC)
+                ->addAttributeToFilter(OrderInterface::UPDATED_AT, ['from' => $from, 'to' => $to])
+                ->addAttributeToFilter(OrderInterface::SHIPPING_DESCRIPTION, ['notnull' => true])
+                ->setPage($page, self::EXPORT_SIZE);
 
-            $this->_xmlData = "<?xml version=\"1.0\" encoding=\"utf-16\"?>\n";
-            /**
-             * Get orders from start date and end date.
-             * Call the getOrdersFromRenewDate model function
-             */
-            if ($startDate && $endDate) {
-                $orders = $this->_order->create()
-                    ->addAttributeToSort('updated_at', 'desc')
-                    ->addAttributeToFilter(
-                        'updated_at',
-                        ['from' => $from, 'to' => $end]
-                    );
-                //Add the order filter for the specific store
-                if ($storeId) {
-                    $orders->addAttributeToFilter('store_id', $storeId);
-                }
-
-                //Set the pagination to return the number of orders.
-                if ($page > 0) {
-                    $orders->setPage($page, self::EXPORT_SIZE);
-                }
-
-                $lastPage = $orders->getLastPageNumber();
-                $this->_xmlData .= "<Orders pages='" . $lastPage . "'>\n";
-                $this->_writeOrdersWithShippingDescription($orders);
-
-                $this->_xmlData .= "</Orders>";
-            } else {
-                $this->_xmlData .= "<date>date required</date>\n";
-            }
-
-            return $this->_xmlData;
-        } catch (Exception $fault) {
-            return $this->_dataHelper->fault($fault->getCode(), $fault->getMessage());
+            $this->writeShippableOrdersXml($orders);
+        } else {
+            $this->_xmlData .= "<date>date required</date>\n";
         }
 
-        return $this;
+        return $this->_xmlData;
+    }
+
+    /**
+     * @param string|null $urlDate
+     * @return string
+     */
+    private function toDateString(?string $urlDate): ?string
+    {
+        $time = strtotime(urldecode($urlDate));
+
+        if (!$time) {
+            return null;
+        }
+
+        return date('Y-m-d H:i:s', $time);
     }
 
     /**
      * Write the order in xml file
-     *
-     * @param \Magento\Sales\Model\Order $order order details
-     *
-     * @return order
+     * @param Order $order
+     * @return $this
      */
-    private function _writeOrder($order)
+    private function writeOrderXml(Order $order): self
     {
         $this->_xmlData .= "\t<Order>\n";
-        $this->_addFieldToXML("OrderNumber", $order->getIncrementId());
-        $this->_addFieldToXML("OrderDate", $order->getCreatedAt());
-        $this->_addFieldToXML("OrderStatus", $order->getStatus());
-        $this->_addFieldToXML("LastModified", $order->getUpdatedAt());
-        //Get the shipping method name and carrier name
-        $this->_addFieldToXML(
+        $this->addXmlElement("OrderNumber", $order->getIncrementId());
+        $this->addXmlElement("OrderDate", $order->getCreatedAt());
+        $this->addXmlElement("OrderStatus", $order->getStatus());
+        $this->addXmlElement("LastModified", $order->getUpdatedAt());
+        $this->addXmlElement("CurrencyCode", $order->getOrderCurrencyCode());
+
+        $this->addXmlElement(
             "ShippingMethod",
             "{$order->getShippingDescription()}|{$order->getShippingMethod()}"
         );
-        //Check for the price type
+
         if ($this->_priceType) {
             $orderTotal = $order->getBaseGrandTotal();
             $orderTax = $order->getBaseTaxAmount();
@@ -254,18 +252,19 @@ class Export
             $orderShipping = $order->getShippingAmount();
         }
 
-        $this->_addFieldToXML("OrderTotal", $orderTotal);
-        $this->_addFieldToXML("TaxAmount", $orderTax);
-        $this->_addFieldToXML("ShippingAmount", $orderShipping);
-        $this->_addFieldToXML(
+        $this->addXmlElement("OrderTotal", $orderTotal);
+        $this->addXmlElement("TaxAmount", $orderTax);
+        $this->addXmlElement("ShippingAmount", $orderShipping);
+        $this->addXmlElement(
             "InternalNotes",
             '<![CDATA[' . $order->getCustomerNote() . ']]>'
         );
-        //Get the gift message info
+
+
         $this->_getGiftMessageInfo($order);
-        //Customer details
+
         $this->_xmlData .= "\t<Customer>\n";
-        $this->_addFieldToXML("CustomerCode", $order->getCustomerEmail());
+        $this->addXmlElement("CustomerCode", $order->getCustomerEmail());
         $this->_getBillingInfo($order); //call to the billing info function
         $this->_getShippingInfo($order); //call to the shipping info function
         $this->_xmlData .= "\t</Customer>\n";
@@ -278,68 +277,49 @@ class Export
 
         $this->_xmlData .= "\t</Items>\n";
         $this->_xmlData .= "\t</Order>\n";
+
+        return $this;
     }
 
     /**
-     * Function to add field to xml
+     * Function to add field to xml.
      *
-     * @param string $strFieldName name
-     * @param string $strValue value
-     *
-     * @return xml
+     * @param string $strFieldName
+     * @param string $strValue
+     * @return $this
      */
-    private function _addFieldToXML($strFieldName, $strValue)
+    private function addXmlElement(string $strFieldName, string $strValue): self
     {
         $strResult = mb_convert_encoding(
             str_replace('&', '&amp;', $strValue),
             'UTF-8'
         );
         $this->_xmlData .= "\t\t<$strFieldName>$strResult</$strFieldName>\n";
+
+        return $this;
     }
 
     /**
-     * Get the Gift information of order or item
-     *
-     * @param $giftMessage gift message object
-     *
-     * @return gift message details
+     * Get the Gift information of order or item.
+     * @param Order|Order\Item $messageContainer
+     * @return $this
      */
-    private function _getGiftMessageInfo($giftMessage)
+    private function _getGiftMessageInfo($messageContainer): self
     {
-        //Get gift message id
-        $giftId = $giftMessage->getGiftMessageId();
-        $isGift = 'false';
-        if ($giftId) {
-            $isGift = 'true';
-            //Get message object
-            $gift = $this->_giftMessage->getGiftMessage($giftId);
-            if (!empty($gift)) {
-                $message = $gift->getMessage();
-                $to = $gift->getRecipient();
-                $from = $gift->getSender();
-                //Set from, to and meesage in a variable
-                $giftMessage = sprintf(
-                    "From: %s\nTo: %s\nMessage: %s",
-                    $from,
-                    $to,
-                    $message
-                );
-                //Add gift message in XML
-                $this->_addFieldToXML(
-                    "GiftMessage",
-                    '<![CDATA[' . $giftMessage . ']]>'
-                );
-            }
-
+        if ($giftId = $messageContainer->getGiftMessageId()) {
+            $gift = $this->giftMessageProvider->getGiftMessage($giftId);
+            $this->addXmlElement("GiftMessage", "<![CDATA[From: {$gift->getSender()}\nTo: {$gift->getRecipient()}\nMessage: {$gift->getMessage()}]]>");
         }
 
-        $this->_addFieldToXML("Gift", $isGift);
+        $this->addXmlElement("Gift", !is_null($giftId));
+
+        return $this;
     }
 
     /**
      * Get the Billing information of order
      *
-     * @param \Magento\Sales\Model\Order $order billing information
+     * @param Order $order billing information
      *
      * @return billing information
      */
@@ -349,13 +329,13 @@ class Export
         if (!empty($billing)) {
             $name = $billing->getFirstname() . ' ' . $billing->getLastname();
             $this->_xmlData .= "\t<BillTo>\n";
-            $this->_addFieldToXML("Name", '<![CDATA[' . $name . ']]>');
-            $this->_addFieldToXML(
+            $this->addXmlElement("Name", '<![CDATA[' . $name . ']]>');
+            $this->addXmlElement(
                 "Company",
                 '<![CDATA[' . $billing->getCompany() . ']]>'
             );
-            $this->_addFieldToXML("Phone", $billing->getTelephone());
-            $this->_addFieldToXML("Email", $order->getCustomerEmail());
+            $this->addXmlElement("Phone", $billing->getTelephone());
+            $this->addXmlElement("Email", $order->getCustomerEmail());
             $this->_xmlData .= "\t</BillTo>\n";
         }
     }
@@ -363,7 +343,7 @@ class Export
     /**
      * Get the Shipping information of order
      *
-     * @param \Magento\Sales\Model\Order $order get shipping information
+     * @param Order $order get shipping information
      *
      * @return Shipping information
      */
@@ -380,30 +360,30 @@ class Export
             }
 
             $this->_xmlData .= "\t<ShipTo>\n";
-            $this->_addFieldToXML("Name", '<![CDATA[' . $name . ']]>');
-            $this->_addFieldToXML(
+            $this->addXmlElement("Name", '<![CDATA[' . $name . ']]>');
+            $this->addXmlElement(
                 "Company",
                 '<![CDATA[' . $shipping->getCompany() . ']]>'
             );
-            $this->_addFieldToXML(
+            $this->addXmlElement(
                 "Address1",
                 '<![CDATA[' . $shipping->getStreetLine(1) . ']]>'
             );
-            $this->_addFieldToXML(
+            $this->addXmlElement(
                 "Address2",
                 '<![CDATA[' . $shipping->getStreetLine(2) . ']]>'
             );
-            $this->_addFieldToXML(
+            $this->addXmlElement(
                 "City",
                 '<![CDATA[' . $shipping->getCity() . ']]>'
             );
-            $this->_addFieldToXML(
+            $this->addXmlElement(
                 "State",
                 '<![CDATA[' . $shipping->getRegion() . ']]>'
             );
-            $this->_addFieldToXML("PostalCode", $shipping->getPostcode());
-            $this->_addFieldToXML("Country", '<![CDATA[' . $country . ']]>');
-            $this->_addFieldToXML("Phone", $shipping->getTelephone());
+            $this->addXmlElement("PostalCode", $shipping->getPostcode());
+            $this->addXmlElement("Country", '<![CDATA[' . $country . ']]>');
+            $this->addXmlElement("Phone", $shipping->getTelephone());
             $this->_xmlData .= "\t</ShipTo>\n";
         }
     }
@@ -411,7 +391,7 @@ class Export
     /**
      * Write the order item in xml response data
      *
-     * @param \Magento\Sales\Model\Order $order order object
+     * @param Order $order order object
      *
      * @return order
      */
@@ -428,7 +408,8 @@ class Export
 
                 //Get the parent item from the order item
                 $parentItem = $orderItem->getParentItem();
-                $weight = $orderItem->getWeight();
+                $foreighWeight = $this->weightAdapter->toForeignWeight($orderItem->getWeight());
+
                 if ($this->_priceType) {
                     $price = $orderItem->getBasePrice();
                 } else {
@@ -454,7 +435,8 @@ class Export
                             continue;
                         }
 
-                        $weight = $price = 0;
+                        $price = 0;
+                        $foreighWeight = $this->weightAdapter->toForeignWeight(0);
                     }
 
                     //set the item price from parent item price
@@ -485,15 +467,13 @@ class Export
 
                 if (!empty($orderItem)) {
                     $this->_xmlData .= "\t<Item>\n";
-                    $this->_addFieldToXML("SKU", $orderItem->getSku());
-                    $this->_addFieldToXML("Name", '<![CDATA[' . $name . ']]>');
-                    $this->_addFieldToXML("ImageUrl", $imageUrl);
-                    $this->_addFieldToXML("Weight", $weight);
-                    $this->_addFieldToXML("UnitPrice", $price);
-                    $this->_addFieldToXML(
-                        "Quantity",
-                        (int)$orderItem->getQtyOrdered()
-                    );
+                    $this->addXmlElement("SKU", "<![CDATA[{$orderItem->getSku()}]]>");
+                    $this->addXmlElement("Name", "'<![CDATA[{$name}]]>'");
+                    $this->addXmlElement("ImageUrl", $imageUrl);
+                    $this->addXmlElement("Weight", $foreighWeight->getValue());
+                    $this->addXmlElement("WeightUnits", $foreighWeight->getUnit());
+                    $this->addXmlElement("UnitPrice", $price);
+                    $this->addXmlElement("Quantity", (int)$orderItem->getQtyOrdered());
                     //Get the item level gift message info
                     $this->_getGiftMessageInfo($orderItem);
                     /*
@@ -533,12 +513,12 @@ class Export
     private function _writeOption($label, $value)
     {
         $this->_xmlData .= "\t<Option>\n";
-        $this->_addFieldToXML("Name", '<![CDATA[' . $label . ']]>');
+        $this->addXmlElement("Name", '<![CDATA[' . $label . ']]>');
         if (is_array($value)) {
             $value = implode(', ', $value);
         }
 
-        $this->_addFieldToXML("Value", '<![CDATA[' . $value . ']]>');
+        $this->addXmlElement("Value", '<![CDATA[' . $value . ']]>');
         $this->_xmlData .= "\t</Option>\n";
     }
 
@@ -578,7 +558,7 @@ class Export
     /**
      * Write the order discount details in to the xml response data
      *
-     * @param \Magento\Sales\Model\Order $order order object
+     * @param Order $order order object
      *
      * @return void
      */
@@ -591,35 +571,30 @@ class Export
         }
 
         $this->_xmlData .= "\t<Item>\n";
-        $this->_addFieldToXML("SKU", $code);
-        $this->_addFieldToXML("Name", '');
-        $this->_addFieldToXML("Adjustment", 'true');
-        $this->_addFieldToXML("Quantity", 1);
-        $this->_addFieldToXML("UnitPrice", $order->getDiscountAmount());
+        $this->addXmlElement("SKU", $code);
+        $this->addXmlElement("Name", '');
+        $this->addXmlElement("Adjustment", 'true');
+        $this->addXmlElement("Quantity", 1);
+        $this->addXmlElement("UnitPrice", $order->getDiscountAmount());
         $this->_xmlData .= "\t</Item>\n";
     }
 
     /**
-     * @param $orders
+     * @param Collection $orders
+     * @return $this
      */
-    private function _writeOrdersWithShippingDescription($orders)
+    private function writeShippableOrdersXml(Collection $orders): self
     {
-        if (!empty($orders)) {
-            foreach ($orders as $order) {
-                if (!empty($order)) {
-                    // check if shipping info is available with order.
-                    $orderShipping = $order->getShippingDescription();
-                    if ($orderShipping) {
-                        $this->_writeOrder($order);
-                    } else {
-                        continue;
-                    }
+        $this->_xmlData .= "<Orders pages=\"{$orders->getLastPageNumber()}\">\n";
 
-                } else {
-                    continue;
-                }
-            }
+        /** @var Order $order */
+        foreach ($orders as $order) {
+            $this->writeOrderXml($order);
         }
+
+        $this->_xmlData .= "</Orders>";
+
+        return $this;
     }
 
     /**
