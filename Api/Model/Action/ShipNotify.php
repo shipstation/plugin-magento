@@ -21,95 +21,88 @@ class ShipNotify
      * Invoice Comment
      */
     const COMMENT = 'Issued by Auctane ShipStation.';
-
+    /**
+     * Mails Disabled Configuration Path
+     */
+    const MAILS_DISABLED = 'system/smtp/disable';
+    /**
+     * Shipments Enabled Configuration Path
+     */
+    const SHIPMENTS_ENABLED = 'sales_email/shipment/enabled';
     /**
      * Order factory
      *
      * @var \Magento\Sales\Model\OrderFactory
      */
     private $_orderFactory;
-
     /**
      * Scope config interface
      *
      * @var \Magento\Framework\App\Config\ScopeConfigInterface
      */
     private $_scopeConfig;
-
     /**
      * Transaction factory
      *
      * @var \Magento\Framework\DB\TransactionFactory
      */
     private $_transactionFactory;
-
     /**
      * Shipment factory
      *
      * @var \Magento\Sales\Model\Order\ShipmentFactory
      */
     private $_shipmentFactory;
-
     /**
      * Invoice sender
      *
      * @var \Magento\Sales\Model\Order\Email\Sender\InvoiceSender
      */
     private $_invoiceSender;
-
     /**
      * Shipment sender
      *
      * @var Magento\Sales\Model\Order\Email\Sender\ShipmentSender
      */
     private $_shipmentSender;
-
     /**
      * Track factory
      *
      * @var \Magento\Sales\Model\Order\Shipment\TrackFactory
      */
     private $_trackFactory;
-
     /**
      * Helper
      *
      * @var \Auctane\Api\Helper\Data
      */
     private $_dataHelper;
-
     /**
      * Import child
      *
      * @var boolean
      */
     private $_importChild = 0;
-
     /**
      * Custom Invoicing
      *
      * @var boolean
      */
     private $_customInvoicing = 0;
-
     /**
      * Scope interface
      *
      * @var \Magento\Store\Model\ScopeInterface
      */
     private $_store = '';
-
     /**
      * Product type
      *
      * @var \Magento\Catalog\Model\Product\Type
      */
     private $_typeBundle = '';
-
     /** @var DirectoryList */
     private $directoryList;
-
-
     /**
      * Mails Enabled
      *
@@ -117,15 +110,6 @@ class ShipNotify
      */
     private $_mailsEnabled = 0;
 
-    /**
-     * Mails Disabled Configuration Path
-     */
-    const MAILS_DISABLED = 'system/smtp/disable';
-
-    /**
-     * Shipments Enabled Configuration Path
-     */
-    const SHIPMENTS_ENABLED = 'sales_email/shipment/enabled';
     /**
      * Shipnotify contructor
      *
@@ -150,7 +134,8 @@ class ShipNotify
         \Magento\Sales\Model\Order\Shipment\TrackFactory $trackFactory,
         \Auctane\Api\Helper\Data $dataHelper,
         DirectoryList $directoryList
-    ) {
+    )
+    {
         $this->_orderFactory = $orderFactory;
         $this->_scopeConfig = $scopeConfig;
         $this->_transactionFactory = $transactionFactory;
@@ -179,7 +164,7 @@ class ShipNotify
         // Settings to check mails/shipments are enabled on not
         $mailSetting = $this->_scopeConfig->getValue(self::MAILS_DISABLED, $this->_store); //if mailSetting is 0 which means mails are enabled.
         $shipmentSetting = $this->_scopeConfig->getValue(self::SHIPMENTS_ENABLED, $this->_store);
-        if($mailSetting == 0 && $shipmentSetting == 1){
+        if ($mailSetting == 0 && $shipmentSetting == 1) {
             $this->_mailsEnabled = 1;
         }
 

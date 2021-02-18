@@ -16,15 +16,16 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
-use Magento\Framework\Exception\AuthorizationException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use Zend\Http\Response;
-use Zend\Json\Server\Response\Http;
-use Magento\Store\Model\Store;
 
 
+/**
+ * Class Index
+ * @package Auctane\Api\Controller\Auctane
+ */
 class Index extends Action implements CsrfAwareActionInterface
 {
     /**
@@ -107,7 +108,8 @@ class Index extends Action implements CsrfAwareActionInterface
      */
     public function createCsrfValidationException(
         RequestInterface $request
-    ): ?InvalidRequestException {
+    ): ?InvalidRequestException
+    {
         return null;
     }
 
