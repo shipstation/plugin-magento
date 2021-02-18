@@ -2,6 +2,7 @@
 
 namespace Auctane\Api\Controller\Auctane;
 
+use Auctane\Api\Exception\InvalidXmlException;
 use Auctane\Api\Helper\Data;
 use Auctane\Api\Model\Action\Export;
 use Auctane\Api\Model\Action\ShipNotify;
@@ -15,15 +16,15 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Exception\AuthorizationException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\StoreManagerInterface;
+use Psr\Log\LoggerInterface;
 use Zend\Http\Response;
+use Zend\Json\Server\Response\Http;
+use Magento\Store\Model\Store;
 
 
-/**
- * Class Index
- * @package Auctane\Api\Controller\Auctane
- */
 class Index extends Action implements CsrfAwareActionInterface
 {
     /**
@@ -58,7 +59,23 @@ class Index extends Action implements CsrfAwareActionInterface
      * @var RedirectFactory
      */
     private $redirectFactory;
+    /** @var LoggerInterface */
+    private $logger;
 
+
+    /**
+     * Index constructor.
+     * @param Context $context
+     * @param StoreManagerInterface $storeManager
+     * @param StorageInterface $storage
+     * @param ScopeConfigInterface $scopeConfig
+     * @param Data $dataHelper
+     * @param Export $export
+     * @param ShipNotify $shipNotify
+     * @param RedirectFactory $redirectFactory
+     * @param Authenticator $authenticator
+     * @param LoggerInterface $logger
+     */
     public function __construct(
         Context $context,
         StoreManagerInterface $storeManager,
@@ -68,7 +85,8 @@ class Index extends Action implements CsrfAwareActionInterface
         Export $export,
         ShipNotify $shipNotify,
         RedirectFactory $redirectFactory,
-        Authenticator $authenticator
+        Authenticator $authenticator,
+        LoggerInterface $logger
     )
     {
         parent::__construct($context);
@@ -81,6 +99,7 @@ class Index extends Action implements CsrfAwareActionInterface
         $this->shipNotify = $shipNotify;
         $this->redirectFactory = $redirectFactory;
         $this->authenticator = $authenticator;
+        $this->logger = $logger;
     }
 
     /**
@@ -88,8 +107,7 @@ class Index extends Action implements CsrfAwareActionInterface
      */
     public function createCsrfValidationException(
         RequestInterface $request
-    ): ?InvalidRequestException
-    {
+    ): ?InvalidRequestException {
         return null;
     }
 
@@ -114,6 +132,8 @@ class Index extends Action implements CsrfAwareActionInterface
             $this->getResponse()->setHeader('Content-Type', 'text/xml; charset=UTF-8', true);
             $result = $this->dataHelper->fault(401, 'Authentication failed');
             $this->getResponse()->setBody($result);
+            $this->logger->error("Authentication failed.", ['authentication']);
+
             return false;
         }
 
@@ -137,8 +157,16 @@ class Index extends Action implements CsrfAwareActionInterface
         } catch (LocalizedException $e) {
             $this->getResponse()->setStatusCode(Response::STATUS_CODE_400);
             $result = $this->dataHelper->fault(Response::STATUS_CODE_400, $e->getMessage());
+            $this->logger->error($e->getMessage());
+        } catch (InvalidXmlException $e) {
+            foreach ($e->getErrors() as $error) {
+                $this->logger->error($error->message, ['ship_notify', $error->line]);
+            }
+
+            $result = $this->dataHelper->fault(Response::STATUS_CODE_400, $e->getMessage());
         } catch (Exception $fault) {
             $result = $this->dataHelper->fault($fault->getCode(), $fault->getMessage());
+            $this->logger->error($fault->getMessage());
         }
 
         $this->getResponse()->setBody($result);
