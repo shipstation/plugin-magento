@@ -183,9 +183,10 @@ class Export
     /**
      * Perform an export according to the given request.
      * @param HttpRequest $request
+     * @param string[] $storeIds
      * @return string
      */
-    public function process(HttpRequest $request): string
+    public function process(HttpRequest $request, array $storeIds): string
     {
         $from = $this->toDateString($request->getParam('start_date'));
         $to = $this->toDateString($request->getParam('end_date'));
@@ -198,6 +199,7 @@ class Export
                 ->addAttributeToSort(OrderInterface::UPDATED_AT, SortOrder::SORT_DESC)
                 ->addAttributeToFilter(OrderInterface::UPDATED_AT, ['from' => $from, 'to' => $to])
                 ->addAttributeToFilter(OrderInterface::SHIPPING_DESCRIPTION, ['notnull' => true])
+                ->addAttributeToFilter(OrderInterface::STORE_ID, $storeIds)
                 ->setPage($page, self::EXPORT_SIZE);
 
             $this->writeShippableOrdersXml($orders);
