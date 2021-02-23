@@ -184,9 +184,10 @@ class Export
     /**
      * Perform an export according to the given request.
      * @param HttpRequest $request
+     * @param string[] $storeIds
      * @return string
      */
-    public function process(HttpRequest $request): string
+    public function process(HttpRequest $request, array $storeIds): string
     {
         $from = $this->toDateString($request->getParam('start_date'));
         $to = $this->toDateString($request->getParam('end_date'));
@@ -200,6 +201,10 @@ class Export
                 ->addAttributeToFilter(OrderInterface::UPDATED_AT, ['from' => $from, 'to' => $to])
                 ->addAttributeToFilter(OrderInterface::SHIPPING_DESCRIPTION, ['notnull' => true])
                 ->setPage($page, self::EXPORT_SIZE);
+
+            if (!empty($storeIds)) {
+                $orders->addAttributeToFilter(OrderInterface::STORE_ID, $storeIds);
+            }
 
             $this->writeShippableOrdersXml($orders);
         } else {
@@ -274,10 +279,8 @@ class Export
         $this->addXmlElement("OrderTotal", $orderTotal);
         $this->addXmlElement("TaxAmount", $orderTax);
         $this->addXmlElement("ShippingAmount", $orderShipping);
-        $this->addXmlElement(
-            "InternalNotes",
-            '<![CDATA[' . $order->getCustomerNote() . ']]>'
-        );
+        $this->addXmlElement("InternalNotes", "<![CDATA[{$order->getCustomerNote()}]]>");
+        $this->addXmlElement("StoreCode", $order->getStore()->getCode());
 
 
         $this->_getGiftMessageInfo($order);

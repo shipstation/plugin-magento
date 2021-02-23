@@ -1,19 +1,20 @@
 <?php
-/**
- * Copyright © Novatize. All rights reserved.
- */
 
 namespace Auctane\Api\Controller\Adminhtml\ApiKey;
 
 use Auctane\Api\Model\ApiKeyGenerator;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\AuthorizationInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Controller\ResultInterface;
 
+
+/**
+ * Class Index
+ * @package Auctane\Api\Controller\Adminhtml\ApiKey
+ */
 class Index extends Action implements AuthorizationInterface
 {
     /**
@@ -21,23 +22,26 @@ class Index extends Action implements AuthorizationInterface
      */
     private $resultJsonFactory;
     /**
-     * @var WriterInterface
-     */
-    private $configWriter;
-    /**
      * @var ApiKeyGenerator
      */
     private $apiKeyGenerator;
 
+
+    /**
+     * Index constructor.
+     * @param Context $context
+     * @param JsonFactory $resultJsonFactory
+     * @param ApiKeyGenerator $apiKeyGenerator
+     */
     public function __construct(
         Context $context,
         JsonFactory $resultJsonFactory,
-        WriterInterface $configWriter,
         ApiKeyGenerator $apiKeyGenerator
-    ) {
+    )
+    {
         parent::__construct($context);
+
         $this->resultJsonFactory = $resultJsonFactory;
-        $this->configWriter = $configWriter;
         $this->apiKeyGenerator = $apiKeyGenerator;
     }
 
@@ -48,25 +52,19 @@ class Index extends Action implements AuthorizationInterface
      */
     public function execute()
     {
-        $key = $this->apiKeyGenerator->generate();
-        $this->configWriter->save('shipstation_general/shipstation/ship_api_key', $key);
-
-        $result = $this->resultJsonFactory->create();
-        $result->setData([
-            'key' => $key
-        ]);
-
-        return $result;
+        return $this->resultJsonFactory->create()
+            ->setData(['key' => $this->apiKeyGenerator->generate()]);
     }
 
     /**
      * Check current user permission on resource and privilege
      *
      * @param string $resource
-     * @param string $privilege
+     * @param string|null $privilege
      * @return  boolean
+     * @noinspection PhpMissingParamTypeInspection
      */
-    public function isAllowed($resource, $privilege = null)
+    public function isAllowed($resource, $privilege = null): bool
     {
         return $this->_authorization->isAllowed('Auctane_Api::admin_config');
     }

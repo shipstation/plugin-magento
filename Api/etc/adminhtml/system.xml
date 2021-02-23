@@ -5,15 +5,13 @@
         <tab id="shipstation" translate="label" sortOrder="100">
             <label>ShipStation</label>
         </tab>
-        <section id="shipstation_general" translate="label" type="text" sortOrder="300"
-                 showInDefault="1" showInWebsite="1" showInStore="1">
-            <class>separator-top</class>
+        <section id="shipstation_general" translate="label" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
             <tab>shipstation</tab>
             <label>General Settings</label>
             <resource>Auctane_Api::admin_config</resource>
-            <group id="shipstation" showInDefault="1">
-                <field id="ship_api_key" translate="label" type="text" sortOrder="3"
-                       showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="shipstation" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General Settings</label>
+                <field id="ship_api_key" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>ShipStation Api Key</label>
                     <frontend_model>Auctane\Api\Block\System\Config\ApiKey</frontend_model>
                 </field>
