@@ -5,22 +5,12 @@
 
 namespace Auctane\Api\Model;
 
-
-/**
- * Class ApiKeyGenerator
- * @package Auctane\Api\Model
- */
 class ApiKeyGenerator
 {
     const API_KEY_BYTES_AMOUNT = 16;
 
-    /**
-     * @return string
-     * @noinspection PhpDocMissingThrowsInspection
-     */
-    public function generate(): string
+    public function generate()
     {
-        /** @noinspection PhpUnhandledExceptionInspection */
         return bin2hex(random_bytes(self::API_KEY_BYTES_AMOUNT));
     }
 }

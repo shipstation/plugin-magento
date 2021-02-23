@@ -17,27 +17,6 @@
         <plugin name="auctane_index" type="Auctane\Api\Plugin\Controller\Auctane\IndexPlugin"/>
     </type>
 
-    <virtualType name="Auctane\Api\Model\ActionLoggerHandler" type="Magento\Framework\Logger\Handler\Base">
-        <arguments>
-            <argument name="fileName" xsi:type="string"><![CDATA[var/log/auctane_api.log]]></argument>
-        </arguments>
-    </virtualType>
-
-    <virtualType name="Auctane\Api\Model\ActionLogger" type="Magento\Framework\Logger\Monolog">
-        <arguments>
-            <argument name="name" xsi:type="string">auctane_api</argument>
-            <argument name="handlers" xsi:type="array">
-                <item name="system" xsi:type="object">Auctane\Api\Model\ActionLoggerHandler</item>
-            </argument>
-        </arguments>
-    </virtualType>
-
-    <type name="Auctane\Api\Controller\Auctane\Index">
-        <arguments>
-            <argument name="logger" xsi:type="object">Auctane\Api\Model\ActionLogger</argument>
-        </arguments>
-    </type>
-
     <preference for="Auctane\Api\Api\ConfigureShipstationInterface" type="Auctane\Api\Model\ConfigureShipstation"/>
     <preference for="Auctane\Api\Api\CheckInterface" type="Auctane\Api\Model\Check"/>
 

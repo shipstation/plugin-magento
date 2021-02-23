@@ -2,15 +2,10 @@
 
 namespace Auctane\Api\Block\System\Config;
 
-use Magento\Backend\Block\Widget\Button;
+use Magento\Backend\Block\Template\Context;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 
-
-/**
- * Class GenerateApiKeyButton
- * @package Auctane\Api\Block\System\Config
- */
 class GenerateApiKeyButton extends Field
 {
     /**
@@ -19,11 +14,23 @@ class GenerateApiKeyButton extends Field
     protected $_template = 'Auctane_Api::system/config/generate.phtml';
 
     /**
+     * Remove scope label
+     *
+     * @param AbstractElement $element
+     * @return string
+     */
+    public function render(AbstractElement $element)
+    {
+        $element->unsScope()->unsCanUseWebsiteValue()->unsCanUseDefaultValue();
+        return parent::render($element);
+    }
+
+    /**
      * Return ajax url for synchronize button
      *
      * @return string
      */
-    public function getApiKeyGenerationUrl(): string
+    public function getApiKeyGenerationUrl()
     {
         return $this->getUrl('auctane_api/apikey');
     }
@@ -32,13 +39,11 @@ class GenerateApiKeyButton extends Field
      * Generate synchronize button html
      *
      * @return string
-     * @noinspection PhpDocMissingThrowsInspection
      */
-    public function getButtonHtml(): string
+    public function getButtonHtml()
     {
-        /** @noinspection PhpUnhandledExceptionInspection */
         $button = $this->getLayout()->createBlock(
-            Button::class
+            \Magento\Backend\Block\Widget\Button::class
         )->setData(
             [
                 'class' => 'primary',
@@ -50,11 +55,7 @@ class GenerateApiKeyButton extends Field
         return $button->toHtml();
     }
 
-    /**
-     * @param AbstractElement $element
-     * @return string
-     */
-    protected function _getElementHtml(AbstractElement $element): string
+    protected function _getElementHtml(AbstractElement $element)
     {
         return $this->_toHtml();
     }

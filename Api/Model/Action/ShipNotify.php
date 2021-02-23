@@ -2,117 +2,106 @@
 
 namespace Auctane\Api\Model\Action;
 
-use Auctane\Api\Exception\InvalidXmlException;
-use Auctane\Api\Helper\Data;
 use Auctane\Api\Model\OrderDoesNotExistException;
 use Auctane\Api\Model\ShipmentCannotBeCreatedForOrderException;
 use Exception;
-use Magento\Catalog\Model\Product\Type;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Filesystem\DirectoryList;
-use Magento\Framework\DB\TransactionFactory;
-use Magento\Framework\Exception\FileSystemException;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
-use Magento\Sales\Model\Order\Email\Sender\ShipmentSender;
-use Magento\Sales\Model\Order\Invoice;
-use Magento\Sales\Model\Order\Shipment\TrackFactory;
-use Magento\Sales\Model\Order\ShipmentFactory;
-use Magento\Sales\Model\OrderFactory;
 
-
-/**
- * Class ShipNotify
- * @package Auctane\Api\Model\Action
- */
 class ShipNotify
 {
     /**
      * Invoice Comment
      */
     const COMMENT = 'Issued by Auctane ShipStation.';
-    /**
-     * Mails Disabled Configuration Path
-     */
-    const MAILS_DISABLED = 'system/smtp/disable';
-    /**
-     * Shipments Enabled Configuration Path
-     */
-    const SHIPMENTS_ENABLED = 'sales_email/shipment/enabled';
+
     /**
      * Order factory
      *
-     * @var OrderFactory
+     * @var \Magento\Sales\Model\OrderFactory
      */
     private $_orderFactory;
+
     /**
      * Scope config interface
      *
-     * @var ScopeConfigInterface
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
      */
     private $_scopeConfig;
+
     /**
      * Transaction factory
      *
-     * @var TransactionFactory
+     * @var \Magento\Framework\DB\TransactionFactory
      */
     private $_transactionFactory;
+
     /**
      * Shipment factory
      *
-     * @var ShipmentFactory
+     * @var \Magento\Sales\Model\Order\ShipmentFactory
      */
     private $_shipmentFactory;
+
     /**
      * Invoice sender
      *
-     * @var InvoiceSender
+     * @var \Magento\Sales\Model\Order\Email\Sender\InvoiceSender
      */
     private $_invoiceSender;
+
     /**
      * Shipment sender
      *
      * @var Magento\Sales\Model\Order\Email\Sender\ShipmentSender
      */
     private $_shipmentSender;
+
     /**
      * Track factory
      *
-     * @var TrackFactory
+     * @var \Magento\Sales\Model\Order\Shipment\TrackFactory
      */
     private $_trackFactory;
+
     /**
      * Helper
      *
-     * @var Data
+     * @var \Auctane\Api\Helper\Data
      */
     private $_dataHelper;
+
     /**
      * Import child
      *
      * @var boolean
      */
     private $_importChild = 0;
+
     /**
      * Custom Invoicing
      *
      * @var boolean
      */
     private $_customInvoicing = 0;
+
     /**
      * Scope interface
      *
      * @var \Magento\Store\Model\ScopeInterface
      */
     private $_store = '';
+
     /**
      * Product type
      *
-     * @var Type
+     * @var \Magento\Catalog\Model\Product\Type
      */
     private $_typeBundle = '';
+
     /** @var DirectoryList */
     private $directoryList;
+
+
     /**
      * Mails Enabled
      *
@@ -121,31 +110,39 @@ class ShipNotify
     private $_mailsEnabled = 0;
 
     /**
+     * Mails Disabled Configuration Path
+     */
+    const MAILS_DISABLED = 'system/smtp/disable';
+
+    /**
+     * Shipments Enabled Configuration Path
+     */
+    const SHIPMENTS_ENABLED = 'sales_email/shipment/enabled';
+    /**
      * Shipnotify contructor
      *
-     * @param OrderFactory $orderFactory order factory
-     * @param ScopeConfigInterface $scopeConfig scope config
-     * @param TransactionFactory $transactionFactory transaction
-     * @param ShipmentFactory $shipmentFactory shipment
-     * @param InvoiceSender $invoiceSender invoice
-     * @param ShipmentSender $shipmentSender shipment
-     * @param TrackFactory $trackFactory track
-     * @param Data $dataHelper helper
+     * @param \Magento\Sales\Model\OrderFactory $orderFactory order factory
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig scope config
+     * @param \Magento\Framework\DB\TransactionFactory $transactionFactory transaction
+     * @param \Magento\Sales\Model\Order\ShipmentFactory $shipmentFactory shipment
+     * @param \Magento\Sales\Model\Order\Email\Sender\InvoiceSender $invoiceSender invoice
+     * @param \Magento\Sales\Model\Order\Email\Sender\ShipmentSender $shipmentSender shipment
+     * @param \Magento\Sales\Model\Order\Shipment\TrackFactory $trackFactory track
+     * @param \Auctane\Api\Helper\Data $dataHelper helper
      *
      * @param DirectoryList $directoryList
      */
     public function __construct(
-        OrderFactory $orderFactory,
-        ScopeConfigInterface $scopeConfig,
-        TransactionFactory $transactionFactory,
-        ShipmentFactory $shipmentFactory,
-        InvoiceSender $invoiceSender,
-        ShipmentSender $shipmentSender,
-        TrackFactory $trackFactory,
-        Data $dataHelper,
+        \Magento\Sales\Model\OrderFactory $orderFactory,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Magento\Framework\DB\TransactionFactory $transactionFactory,
+        \Magento\Sales\Model\Order\ShipmentFactory $shipmentFactory,
+        \Magento\Sales\Model\Order\Email\Sender\InvoiceSender $invoiceSender,
+        \Magento\Sales\Model\Order\Email\Sender\ShipmentSender $shipmentSender,
+        \Magento\Sales\Model\Order\Shipment\TrackFactory $trackFactory,
+        \Auctane\Api\Helper\Data $dataHelper,
         DirectoryList $directoryList
-    )
-    {
+    ) {
         $this->_orderFactory = $orderFactory;
         $this->_scopeConfig = $scopeConfig;
         $this->_transactionFactory = $transactionFactory;
@@ -174,32 +171,22 @@ class ShipNotify
         // Settings to check mails/shipments are enabled on not
         $mailSetting = $this->_scopeConfig->getValue(self::MAILS_DISABLED, $this->_store); //if mailSetting is 0 which means mails are enabled.
         $shipmentSetting = $this->_scopeConfig->getValue(self::SHIPMENTS_ENABLED, $this->_store);
-        if ($mailSetting == 0 && $shipmentSetting == 1) {
+        if($mailSetting == 0 && $shipmentSetting == 1){
             $this->_mailsEnabled = 1;
         }
 
-        $this->_typeBundle = Type::TYPE_BUNDLE;
+        $this->_typeBundle = \Magento\Catalog\Model\Product\Type::TYPE_BUNDLE;
     }
 
     /**
      * Perform a notify using POSTed data.
      * See Auctane API specification.
-     * @return string
-     * @throws InvalidXmlException
-     * @throws OrderDoesNotExistException
-     * @throws ShipmentCannotBeCreatedForOrderException
-     * @throws FileSystemException
-     * @throws LocalizedException
-     * @throws Exception
+     *
+     * @return Exception
      */
-    public function process(): string
+    public function process()
     {
-        libxml_use_internal_errors(true);
         $xml = simplexml_load_file('php://input');
-
-        if (!$xml) {
-            throw new InvalidXmlException(libxml_get_errors());
-        }
 
         if ($this->_scopeConfig->getValue('shipstation_general/shipstation/debug_mode')) {
             $time = time();
@@ -212,16 +199,14 @@ class ShipNotify
         if ($order->canInvoice() && !$this->_customInvoicing) {
             // 'NotifyCustomer' must be "true" or "yes" to trigger email
             $notify = filter_var($xml->NotifyCustomer, FILTER_VALIDATE_BOOLEAN);
-
             $invoice = $order->prepareInvoice($qtys);
-            $invoice->setRequestedCaptureCase(Invoice::CAPTURE_ONLINE);
+            $capture = \Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE;
+            $invoice->setRequestedCaptureCase($capture);
             $invoice->addComment(self::COMMENT, $notify);
             $invoice->register();
-
-            $order->setIsInProcess(true);
-
+            $order->setIsInProcess(true); // updates status on save
+            //Save the invoice transaction
             $this->_saveTransaction($order, $invoice);
-
             if ($notify) {
                 $this->_invoiceSender->send($invoice);
             }
@@ -229,7 +214,7 @@ class ShipNotify
         }
 
         if ($order->canShip()) {
-            $this->_getOrderShipment($order, $qtys, $xml);
+            $shipment = $this->_getOrderShipment($order, $qtys, $xml);
         } else {
             throw new ShipmentCannotBeCreatedForOrderException($xml->OrderID);
         }
@@ -244,12 +229,12 @@ class ShipNotify
      *
      * @return \Magento\Sales\Model\Order
      */
-    private function _getOrder($incrementId)
+    private function _getOrder($orderId)
     {
         //$order \Magento\Sales\Model\Order
-        $order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
+        $order = $this->_orderFactory->create()->loadByIncrementId($orderId);
         if (!$order->getIncrementId()) {
-            throw new OrderDoesNotExistException($incrementId);
+            throw new OrderDoesNotExistException($orderId);
         }
 
         return $order;
