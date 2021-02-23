@@ -137,12 +137,12 @@ class Index extends Action implements CsrfAwareActionInterface
         $response = $this->getResponse();
 
         try {
-            $storeId = $this->authenticator->authenticate($request);
+            $storeIds = $this->authenticator->authenticate($request);
 
             switch ($request->getParam('action')) {
                 case 'export':
                     $response->setHeader('Content-Type', 'text/xml');
-                    $result = $this->export->process($request, $storeId);
+                    $result = $this->export->process($request, $storeIds);
                     break;
 
                 case 'shipnotify':

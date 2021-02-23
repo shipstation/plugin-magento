@@ -7,7 +7,6 @@ use Magento\Backend\Model\Auth\Credential\StorageInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Request\Http;
 use Magento\Store\Model\ScopeInterface;
-use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 
 
@@ -45,6 +44,7 @@ class Authenticator
 
     /**
      * Authenticate a user and returns all store Ids linked to the api key.
+     * Returns an empty array if authentication matches global store.
      *
      * @param Http $request
      * @return string[]
@@ -52,7 +52,7 @@ class Authenticator
      */
     public function authenticate(Http $request): array
     {
-        $storeIds = [];
+        $storeIds = null;
 
         // Matching api key at store level.
         if ($apiKey = $request->getHeader('ShipStation-Access-Token')) {
@@ -69,28 +69,19 @@ class Authenticator
             }
         }
 
-        // Matching api key at global level.
-        if (empty($storeIds)) {
-            $globalApiKey = $this->scopeConfig->getValue('shipstation_general/shipstation/ship_api_key');
-
-            if ($apiKey === $globalApiKey) {
-                $storeIds[] = Store::DEFAULT_STORE_ID;
-            }
-        }
-
         // Use Magento user instead.
-        if (empty($storeIds)) {
+        if (is_null($storeIds)) {
             // auth password tests where username is to avoid the pitfall of getting one value from params and one from headers.
             // They should both come from the same place.
             $authUser = $request->getParam('SS-UserName') ? $request->getParam('SS-UserName') : $request->getHeader('SS-UserName');
             $authPassword = $request->getParam('SS-UserName') ? $request->getParam('SS-Password') : $request->getHeader('SS-Password');
 
             if ($this->storage->authenticate($authUser, $authPassword)) {
-                $storeIds[] = Store::DEFAULT_STORE_ID;
+                $storeIds = [];
             }
         }
 
-        if (empty($storeIds)) {
+        if (is_null($storeIds)) {
             throw new AuthenticationFailedException();
         }
 

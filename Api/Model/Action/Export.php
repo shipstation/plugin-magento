@@ -199,8 +199,11 @@ class Export
                 ->addAttributeToSort(OrderInterface::UPDATED_AT, SortOrder::SORT_DESC)
                 ->addAttributeToFilter(OrderInterface::UPDATED_AT, ['from' => $from, 'to' => $to])
                 ->addAttributeToFilter(OrderInterface::SHIPPING_DESCRIPTION, ['notnull' => true])
-                ->addAttributeToFilter(OrderInterface::STORE_ID, $storeIds)
                 ->setPage($page, self::EXPORT_SIZE);
+
+            if (!empty($storeIds)) {
+                $orders->addAttributeToFilter(OrderInterface::STORE_ID, $storeIds);
+            }
 
             $this->writeShippableOrdersXml($orders);
         } else {
@@ -275,10 +278,8 @@ class Export
         $this->addXmlElement("OrderTotal", $orderTotal);
         $this->addXmlElement("TaxAmount", $orderTax);
         $this->addXmlElement("ShippingAmount", $orderShipping);
-        $this->addXmlElement(
-            "InternalNotes",
-            '<![CDATA[' . $order->getCustomerNote() . ']]>'
-        );
+        $this->addXmlElement("InternalNotes", "<![CDATA[{$order->getCustomerNote()}]]>");
+        $this->addXmlElement("StoreCode", $order->getStore()->getCode());
 
 
         $this->_getGiftMessageInfo($order);
