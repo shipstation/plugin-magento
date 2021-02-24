@@ -129,7 +129,6 @@ class Index extends Action implements CsrfAwareActionInterface
      */
     public function execute()
     {
-        /** @var HttpRequest $request */
         $request = $this->getRequest();
         /** @var HttpResponse $response */
         $response = $this->getResponse();
