@@ -13,12 +13,17 @@ use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\DB\TransactionFactory;
 use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Api\Data\ShipmentExtensionFactory;
+use Magento\Sales\Api\Data\ShipmentExtensionInterface;
+use Magento\Sales\Api\Data\ShipmentInterface;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\ShipmentSender;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\Shipment\TrackFactory;
 use Magento\Sales\Model\Order\ShipmentFactory;
 use Magento\Sales\Model\OrderFactory;
+use SimpleXMLElement;
 
 
 /**
@@ -120,6 +125,9 @@ class ShipNotify
      */
     private $_mailsEnabled = 0;
 
+    /** @var ShipmentExtensionFactory */
+    private $shipmentExtensionFactory;
+
     /**
      * Shipnotify contructor
      *
@@ -133,6 +141,7 @@ class ShipNotify
      * @param Data $dataHelper helper
      *
      * @param DirectoryList $directoryList
+     * @param ShipmentExtensionFactory $shipmentExtensionFactory
      */
     public function __construct(
         OrderFactory $orderFactory,
@@ -143,7 +152,8 @@ class ShipNotify
         ShipmentSender $shipmentSender,
         TrackFactory $trackFactory,
         Data $dataHelper,
-        DirectoryList $directoryList
+        DirectoryList $directoryList,
+        ShipmentExtensionFactory $shipmentExtensionFactory
     )
     {
         $this->_orderFactory = $orderFactory;
@@ -155,6 +165,7 @@ class ShipNotify
         $this->_trackFactory = $trackFactory;
         $this->_dataHelper = $dataHelper;
         $this->directoryList = $directoryList;
+        $this->shipmentExtensionFactory = $shipmentExtensionFactory;
 
         $this->_store = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
         //Check for the import child items for the bundle product
@@ -225,14 +236,13 @@ class ShipNotify
             if ($notify) {
                 $this->_invoiceSender->send($invoice);
             }
-
         }
 
-        if ($order->canShip()) {
-            $this->_getOrderShipment($order, $qtys, $xml);
-        } else {
+        if (!$order->canShip()) {
             throw new ShipmentCannotBeCreatedForOrderException($xml->OrderID);
         }
+
+        $this->_getOrderShipment($order, $qtys, $xml);
 
         return "";
     }
@@ -242,7 +252,7 @@ class ShipNotify
      *
      * @param string $orderId order id
      *
-     * @return \Magento\Sales\Model\Order
+     * @return Order
      */
     private function _getOrder($incrementId)
     {
@@ -259,7 +269,7 @@ class ShipNotify
      * Get order quantity
      *
      * @param object $xmlItems xml
-     * @param \Magento\Sales\Model\Order $order order
+     * @param Order $order order
      *
      * @return item quantity
      */
@@ -269,7 +279,6 @@ class ShipNotify
         $qtys = [];
         $skuCount = [];
 
-        /* @var $item Mage_Sales_Model_Order_Item */
         foreach ($order->getItems() as $item) {
             /* collect all items qtys if shipall flag is true */
             if ($shipAll) {
@@ -335,40 +344,40 @@ class ShipNotify
     }
 
     /**
-     * Save the order transaction
-     *
-     * @param \Magento\Sales\Model\Order $order order
-     * @param object $type transaction type
-     *
-     * @return boolean
+     * @param Order $order
+     * @param $type
+     * @return $this
      */
-    private function _saveTransaction($order, $type)
+    private function _saveTransaction(Order $order, $type): self
     {
         // \Magento\Framework\DB\Transaction $transaction
         $transaction = $this->_transactionFactory->create();
         $transaction->addObject($type)
             ->addObject($order)
             ->save();
+
+        return $this;
     }
 
     /**
-     * Order shipment
-     *
-     * @param \Magento\Sales\Model\Order $order order
-     * @param array $qtys quantity
-     * @param object $xml xml
-     *
-     * @return Shipment
+     * @param Order $order
+     * @param int[] $qtys
+     * @param SimpleXMLElement $xml
+     * @return $this
+     * @throws LocalizedException
      */
-    private function _getOrderShipment($order, $qtys, $xml)
+    private function _getOrderShipment(Order $order, array $qtys, SimpleXMLElement $xml): self
     {
-        //Set the tracking information.
-        $tracking[] = [
+        $shipment = $this->_shipmentFactory->create($order, $qtys, [[
             'number' => $xml->TrackingNumber,
-            'carrier_code' => $xml->Carrier,
+            'carrier_code' =>  $xml->Carrier,
             'title' => strtoupper($xml->Carrier)
-        ];
-        $shipment = $this->_shipmentFactory->create($order, $qtys, $tracking);
+        ]]);
+
+        if ($xml->RequestedWarehouse) {
+            $this->assignSource($shipment, $xml->RequestedWarehouse);
+        }
+
         // Internal notes are only visible to admin
         if ($xml->InternalNotes) {
             $shipment->addComment($xml->InternalNotes);
@@ -383,13 +392,35 @@ class ShipNotify
         }
 
         $shipment->register();
+
         $order->setIsInProgress(true);
-        //Save the shipment tranaction
+
         $this->_saveTransaction($order, $shipment);
+
         if ($notify && $this->_mailsEnabled) {
             $this->_shipmentSender->send($shipment);
         }
 
-        return $shipment;
+        return $this;
+    }
+
+    /**
+     * @param ShipmentInterface $shipment
+     * @param string $sourceCode
+     * @return $this
+     */
+    private function assignSource(ShipmentInterface $shipment, string $sourceCode): self
+    {
+        /** @var ShipmentExtensionInterface|null $shipmentExtension */
+        $shipmentExtension = $shipment->getExtensionAttributes();
+
+        if (empty($shipmentExtension)) {
+            $shipmentExtension = $this->shipmentExtensionFactory->create();
+        }
+
+        $shipmentExtension->setSourceCode($sourceCode);
+        $shipment->setExtensionAttributes($shipmentExtension);
+
+        return $this;
     }
 }
