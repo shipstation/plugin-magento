@@ -3,14 +3,21 @@
 namespace Auctane\Api\Model\Action;
 
 use Auctane\Api\Model\WeightAdapter;
-use Exception;
+use Magento\Catalog\Model\Product\Type;
+use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Framework\Api\SortOrder;
 use Magento\Framework\App\Request\Http as HttpRequest;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order\Collection;
 
+
+/**
+ * Class Export
+ * @package Auctane\Api\Model\Action
+ */
 class Export
 {
     /**
@@ -110,7 +117,7 @@ class Export
     /**
      * Product type
      *
-     * @var \Magento\Catalog\Model\Product\Type
+     * @var Type
      */
     private $_typeBundle = '';
 
@@ -136,7 +143,8 @@ class Export
         \Auctane\Api\Helper\Data $dataHelper,
         \Magento\GiftMessage\Helper\Message $giftMessage,
         WeightAdapter $weightAdapter
-    ) {
+    )
+    {
         $this->orderCollectionFactory = $order;
         $this->_scopeConfig = $scopeConfig;
         $this->_countryFactory = $countryFactory;
@@ -170,7 +178,7 @@ class Export
             $this->_store
         );
 
-        $this->_typeBundle = \Magento\Catalog\Model\Product\Type::TYPE_BUNDLE;
+        $this->_typeBundle = Type::TYPE_BUNDLE;
 
         $this->weightAdapter = $weightAdapter;
     }
@@ -178,12 +186,13 @@ class Export
     /**
      * Perform an export according to the given request.
      * @param HttpRequest $request
+     * @param string[] $storeIds
      * @return string
      */
-    public function process(HttpRequest $request): string
+    public function process(HttpRequest $request, array $storeIds): string
     {
         $from = $this->toDateString($request->getParam('start_date'));
-        $to =  $this->toDateString($request->getParam('end_date'));
+        $to = $this->toDateString($request->getParam('end_date'));
         $page = $request->getParam('page') ?? 1;
 
         $this->_xmlData = "<?xml version=\"1.0\" encoding=\"utf-16\"?>\n";
@@ -194,6 +203,10 @@ class Export
                 ->addAttributeToFilter(OrderInterface::UPDATED_AT, ['from' => $from, 'to' => $to])
                 ->addAttributeToFilter(OrderInterface::SHIPPING_DESCRIPTION, ['notnull' => true])
                 ->setPage($page, self::EXPORT_SIZE);
+
+            if (!empty($storeIds)) {
+                $orders->addAttributeToFilter(OrderInterface::STORE_ID, $storeIds);
+            }
 
             $this->writeShippableOrdersXml($orders);
         } else {
@@ -216,6 +229,24 @@ class Export
         }
 
         return date('Y-m-d H:i:s', $time);
+    }
+
+    /**
+     * @param Collection $orders
+     * @return $this
+     */
+    private function writeShippableOrdersXml(Collection $orders): self
+    {
+        $this->_xmlData .= "<Orders pages=\"{$orders->getLastPageNumber()}\">\n";
+
+        /** @var Order $order */
+        foreach ($orders as $order) {
+            $this->writeOrderXml($order);
+        }
+
+        $this->_xmlData .= "</Orders>";
+
+        return $this;
     }
 
     /**
@@ -250,11 +281,8 @@ class Export
         $this->addXmlElement("OrderTotal", $orderTotal);
         $this->addXmlElement("TaxAmount", $orderTax);
         $this->addXmlElement("ShippingAmount", $orderShipping);
-        $this->addXmlElement(
-            "InternalNotes",
-            '<![CDATA[' . $order->getCustomerNote() . ']]>'
-        );
-
+        $this->addXmlElement("InternalNotes", "<![CDATA[{$order->getCustomerNote()}]]>");
+        $this->addXmlElement("StoreCode", $order->getStore()->getCode());
 
         $this->_getGiftMessageInfo($order);
 
@@ -386,105 +414,140 @@ class Export
     /**
      * Write the order item in xml response data
      *
-     * @param Order $order order object
-     *
-     * @return order
+     * @param Order $order
+     * @return $this
+     * @throws LocalizedException
      */
-    private function _orderItem($order)
+    private function _orderItem(Order $order): self
     {
-        if (!empty($order->getItems())) {
-            $imageUrl = '';
-            foreach ($order->getItems() as $orderItem) {
-                $type = $orderItem->getProductType();
-                $isVirtual = $orderItem->getIsVirtual();
-                if ($isVirtual) {
-                    continue;
-                }
+        $imageUrl = '';
 
-                //Get the parent item from the order item
-                $parentItem = $orderItem->getParentItem();
-                $foreighWeight = $this->weightAdapter->toForeignWeight($orderItem->getWeight());
+        foreach ($order->getItems() as $orderItem) {
+            if ($orderItem->getProductType() == self::TYPE_CONFIGURABLE) {
+                continue;
+            }
 
-                if ($this->_priceType) {
-                    $price = $orderItem->getBasePrice();
-                } else {
-                    $price = $orderItem->getPrice();
-                }
+            if ($orderItem->getIsVirtual()) {
+                continue;
+            }
 
-                $name = $orderItem->getName();
-                $product = $orderItem->getProduct();
-                // check for the product object to return the image resource.
-                if (!empty($product)) {
-                    $attribute = $orderItem->getProduct()->getResource()
-                        ->getAttribute('small_image');
+            if ($this->_priceType) {
+                $price = $orderItem->getBasePrice();
+            } else {
+                $price = $orderItem->getPrice();
+            }
 
-                    $imageUrl = $attribute->getFrontend()
-                        ->getUrl($orderItem->getProduct());
-                }
+            $foreighWeight = $this->weightAdapter->toForeignWeight($orderItem->getWeight());
+            $name = $orderItem->getName();
+            $product = $orderItem->getProduct();
 
-                if (!empty($parentItem)) {
-                    $type = $parentItem->getProductType();
-                    if ($type == $this->_typeBundle) {
-                        //Remove child items from the response data
-                        if (!$this->_importChild) {
-                            continue;
-                        }
+            if ($product) {
+                $attribute = $product->getResource()->getAttribute('small_image');
+                $imageUrl = $attribute->getFrontend()->getUrl($orderItem->getProduct());
+            }
 
-                        $price = 0;
-                        $foreighWeight = $this->weightAdapter->toForeignWeight(0);
-                    }
+            $parentItem = $orderItem->getParentItem();
 
-                    //set the item price from parent item price
-                    if ($type == self::TYPE_CONFIGURABLE) {
-                        if ($price == '0.0000' || $price == null) {
-                            $price = $this->_extractPriceFromParentItem($parentItem);
-                        }
-
-                        $name = $parentItem->getName();
-                    }
-
-                    // Set the parent image url if the item image is not set.
-                    $product = $parentItem->getProduct();
-                    if (!$imageUrl && !empty($product)) {
-                        $attribute = $parentItem->getProduct()->getResource()
-                            ->getAttribute('small_image');
-
-                        $imageUrl = $attribute->getFrontend()
-                            ->getUrl($parentItem->getProduct());
-                    }
-
-                } else {
-                    if ($type == self::TYPE_CONFIGURABLE) {
+            if ($parentItem) {
+                if ($parentItem->getProductType() == Type::TYPE_BUNDLE) {
+                    //Remove child items from the response data
+                    if (!$this->_importChild) {
                         continue;
                     }
 
+                    $price = 0;
+                    $foreighWeight = $this->weightAdapter->toForeignWeight(0);
                 }
 
-                if (!empty($orderItem)) {
-                    $this->_xmlData .= "\t<Item>\n";
-                    $this->addXmlElement("SKU", $orderItem->getSku());
-                    $this->addXmlElement("Name", '<![CDATA[' . $name . ']]>');
-                    $this->addXmlElement("ImageUrl", $imageUrl);
-                    $this->addXmlElement("Weight", $foreighWeight->getValue());
-                    $this->addXmlElement("WeightUnits", $foreighWeight->getUnit());
-                    $this->addXmlElement("UnitPrice", $price);
-                    $this->addXmlElement(
-                        "Quantity",
-                        (int)$orderItem->getQtyOrdered()
-                    );
-                    //Get the item level gift message info
-                    $this->_getGiftMessageInfo($orderItem);
-                    /*
-                     * Check for the attributes
-                     */
-                    $this->_xmlData .= "\t<Options>\n";
-                    $attributeCodes = explode(',', $this->_attributes);
-                    $this->_writeOrderItemAttributesAsOptions($attributeCodes, $orderItem);
+                //set the item price from parent item price
+                if ($parentItem->getProductType() == Configurable::TYPE_CODE) {
+                    if ($price == '0.0000' || $price == null) {
+                        $price = $this->_extractPriceFromParentItem($parentItem);
+                    }
 
-                    //custom attribute selection.
-                    $this->_getCustomAttributes($orderItem);
-                    $this->_xmlData .= "\t</Options>\n";
-                    $this->_xmlData .= "\t</Item>\n";
+                    $name = $parentItem->getName();
+                }
+
+                // Set the parent image url if the item image is not set.
+                $parentProduct = $parentItem->getProduct();
+                if (!$imageUrl && !empty($parentProduct)) {
+                    $attribute = $parentProduct->getResource()->getAttribute('small_image');
+                    $imageUrl = $attribute->getFrontend()->getUrl($parentItem->getProduct());
+                }
+            }
+
+            $this->_xmlData .= "\t<Item>\n";
+
+            $this->addXmlElement("SKU", $orderItem->getSku());
+            $this->addXmlElement("Name", '<![CDATA[' . $name . ']]>');
+            $this->addXmlElement("ImageUrl", $imageUrl);
+            $this->addXmlElement("Weight", $foreighWeight->getValue());
+            $this->addXmlElement("WeightUnits", $foreighWeight->getUnit());
+            $this->addXmlElement("UnitPrice", $price);
+            $this->addXmlElement("Quantity", (int)$orderItem->getQtyOrdered());
+
+            $this->_getGiftMessageInfo($orderItem);
+            /*
+             * Check for the attributes
+             */
+            $this->_xmlData .= "\t<Options>\n";
+            $attributeCodes = explode(',', $this->_attributes);
+            $this->_writeOrderItemAttributesAsOptions($attributeCodes, $orderItem);
+
+            //custom attribute selection.
+            $this->_getCustomAttributes($orderItem);
+            $this->_xmlData .= "\t</Options>\n";
+            $this->_xmlData .= "\t</Item>\n";
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param OrderItemInterface $parentItem
+     * @return float|null
+     */
+    private function _extractPriceFromParentItem(OrderItemInterface $parentItem)
+    {
+        return $this->_priceType
+            ? $parentItem->getBasePrice()
+            : $parentItem->getPrice();
+    }
+
+    /**
+     * @param array $attributeCodes
+     * @param OrderItemInterface $orderItem
+     * @return array
+     * @throws LocalizedException
+     */
+    private function _writeOrderItemAttributesAsOptions(array $attributeCodes, OrderItemInterface $orderItem)
+    {
+        foreach ($attributeCodes as $attributeCode) {
+            $product = $orderItem->getProduct();
+            $data = '';
+            if (!empty($product)) {
+                $data = $orderItem->getProduct()
+                    ->hasData($attributeCode);
+            }
+
+            if ($attributeCode && $data) {
+                $attribute = $this->_eavConfig->getAttribute(
+                    $this->_getEntityType(),
+                    $attributeCode
+                );
+                $name = $attribute->getFrontendLabel();
+                $inputType = $attribute->getFrontendInput();
+                if (in_array($inputType, ['select', 'multiselect'])) {
+                    $value = $orderItem->getProduct()
+                        ->getAttributeText($attributeCode);
+                } else {
+                    $value = $orderItem->getProduct()
+                        ->getData($attributeCode);
+                }
+
+                //Add option to xml data
+                if ($value) {
+                    $this->_writeOption($name, $value);
                 }
             }
         }
@@ -575,73 +638,5 @@ class Export
         $this->addXmlElement("Quantity", 1);
         $this->addXmlElement("UnitPrice", $order->getDiscountAmount());
         $this->_xmlData .= "\t</Item>\n";
-    }
-
-    /**
-     * @param Collection $orders
-     * @return $this
-     */
-    private function writeShippableOrdersXml(Collection $orders): self
-    {
-        $this->_xmlData .= "<Orders pages=\"{$orders->getLastPageNumber()}\">\n";
-
-        /** @var Order $order */
-        foreach ($orders as $order) {
-            $this->writeOrderXml($order);
-        }
-
-        $this->_xmlData .= "</Orders>";
-
-        return $this;
-    }
-
-    /**
-     * @param array $attributeCodes
-     * @param OrderItemInterface $orderItem
-     * @return array
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    private function _writeOrderItemAttributesAsOptions(array $attributeCodes, OrderItemInterface $orderItem)
-    {
-        foreach ($attributeCodes as $attributeCode) {
-            $product = $orderItem->getProduct();
-            $data = '';
-            if (!empty($product)) {
-                $data = $orderItem->getProduct()
-                    ->hasData($attributeCode);
-            }
-
-            if ($attributeCode && $data) {
-                $attribute = $this->_eavConfig->getAttribute(
-                    $this->_getEntityType(),
-                    $attributeCode
-                );
-                $name = $attribute->getFrontendLabel();
-                $inputType = $attribute->getFrontendInput();
-                if (in_array($inputType, ['select', 'multiselect'])) {
-                    $value = $orderItem->getProduct()
-                        ->getAttributeText($attributeCode);
-                } else {
-                    $value = $orderItem->getProduct()
-                        ->getData($attributeCode);
-                }
-
-                //Add option to xml data
-                if ($value) {
-                    $this->_writeOption($name, $value);
-                }
-            }
-        }
-    }
-
-    /**
-     * @param OrderItemInterface $parentItem
-     * @return float|null
-     */
-    private function _extractPriceFromParentItem(OrderItemInterface $parentItem)
-    {
-        return $this->_priceType
-            ? $parentItem->getBasePrice()
-            : $parentItem->getPrice();
     }
 }
