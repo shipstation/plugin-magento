@@ -2,6 +2,7 @@
 
 namespace Auctane\Api\Controller\Auctane;
 
+use Auctane\Api\Exception\AuthenticationFailedException;
 use Auctane\Api\Exception\InvalidXmlException;
 use Auctane\Api\Helper\Data;
 use Auctane\Api\Model\Action\Export;
@@ -14,17 +15,20 @@ use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
-use Magento\Framework\Exception\AuthorizationException;
+use Magento\Framework\App\Response\Http as HttpResponse;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use Zend\Http\Response;
-use Zend\Json\Server\Response\Http;
-use Magento\Store\Model\Store;
 
 
+/**
+ * Class Index
+ * @package Auctane\Api\Controller\Auctane
+ */
 class Index extends Action implements CsrfAwareActionInterface
 {
     /**
@@ -107,7 +111,8 @@ class Index extends Action implements CsrfAwareActionInterface
      */
     public function createCsrfValidationException(
         RequestInterface $request
-    ): ?InvalidRequestException {
+    ): ?InvalidRequestException
+    {
         return null;
     }
 
@@ -120,55 +125,52 @@ class Index extends Action implements CsrfAwareActionInterface
     }
 
     /**
-     * Default function
-     *
-     * @return bool
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * Execute action based on request and return result.
      */
     public function execute()
     {
-        if (!$this->authenticator->authenticate()) {
-            $this->getResponse()->setHeader('WWW-Authenticate: ', 'Basic realm=ShipStation', true);
-            $this->getResponse()->setHeader('Content-Type', 'text/xml; charset=UTF-8', true);
-            $result = $this->dataHelper->fault(401, 'Authentication failed');
-            $this->getResponse()->setBody($result);
-            $this->logger->error("Authentication failed.", ['authentication']);
-
-            return false;
-        }
-
-        /** @var $request \Magento\Framework\App\Request\Http */
         $request = $this->getRequest();
-        //Get the requested action
-        $action = $request->getParam('action');
+        /** @var HttpResponse $response */
+        $response = $this->getResponse();
 
         try {
-            switch ($action) {
+            $storeIds = $this->authenticator->authenticate($request);
+
+            switch ($request->getParam('action')) {
                 case 'export':
-                    $this->getResponse()->setHeader('Content-Type', 'text/xml');
-                    $result = $this->export->process($request);
+                    $response->setHeader('Content-Type', 'text/xml');
+                    $result = $this->export->process($request, $storeIds);
                     break;
 
                 case 'shipnotify':
                     $result = $this->shipNotify->process();
                     // if there hasn't been an error then "200 OK" is given
                     break;
+
+                default:
+                    throw new LocalizedException(__('Invalid action.'));
             }
+        } catch (AuthenticationFailedException $e) {
+            $result = $this->dataHelper->fault(401, 'Authentication failed');
+            $response
+                ->setHeader('WWW-Authenticate: ', 'Basic realm=ShipStation', true)
+                ->setHeader('Content-Type', 'text/xml; charset=UTF-8', true);
+
+            $this->logger->error($e->getMessage(), ['authentication']);
         } catch (LocalizedException $e) {
-            $this->getResponse()->setStatusCode(Response::STATUS_CODE_400);
             $result = $this->dataHelper->fault(Response::STATUS_CODE_400, $e->getMessage());
+            $response->setStatusCode(Response::STATUS_CODE_400);
             $this->logger->error($e->getMessage());
         } catch (InvalidXmlException $e) {
+            $result = $this->dataHelper->fault(Response::STATUS_CODE_400, $e->getMessage());
             foreach ($e->getErrors() as $error) {
                 $this->logger->error($error->message, ['ship_notify', $error->line]);
             }
-
-            $result = $this->dataHelper->fault(Response::STATUS_CODE_400, $e->getMessage());
         } catch (Exception $fault) {
             $result = $this->dataHelper->fault($fault->getCode(), $fault->getMessage());
             $this->logger->error($fault->getMessage());
         }
 
-        $this->getResponse()->setBody($result);
+        $response->setBody($result);
     }
 }
