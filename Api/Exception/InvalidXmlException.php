@@ -11,11 +11,12 @@ use libXMLError;
  */
 class InvalidXmlException extends \Exception
 {
-    /** @var array */
+    /** @var LibXMLError[] */
     private $errors;
 
     /**
      * InvalidXmlException constructor.
+     * @param LibXMLError[] $errors
      */
     public function __construct(array $errors)
     {
