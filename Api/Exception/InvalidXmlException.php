@@ -3,13 +3,14 @@
 namespace Auctane\Api\Exception;
 
 use libXMLError;
+use Magento\Framework\Exception\LocalizedException;
 
 
 /**
  * Class InvalidXmlException
  * @package Auctane\Api\Exception
  */
-class InvalidXmlException extends \Exception
+class InvalidXmlException extends LocalizedException
 {
     /** @var array */
     private $errors;
@@ -21,7 +22,7 @@ class InvalidXmlException extends \Exception
     {
         $this->errors = $errors;
 
-        parent::__construct("Input Xml contains errors and couldn't be parsed.");
+        parent::__construct(__("Input Xml contains errors and couldn't be parsed."));
     }
 
     /**

@@ -150,7 +150,7 @@ class Index extends Action implements CsrfAwareActionInterface
                     throw new LocalizedException(__('Invalid action.'));
             }
         } catch (AuthenticationFailedException $e) {
-            $result = $this->dataHelper->fault(401, 'Authentication failed');
+            $result = $this->dataHelper->fault(401, __('Authentication failed'));
             $response
                 ->setHeader('WWW-Authenticate: ', 'Basic realm=ShipStation', true)
                 ->setHeader('Content-Type', 'text/xml; charset=UTF-8', true);
