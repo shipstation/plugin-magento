@@ -15,13 +15,14 @@ use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Response\Http as HttpResponse;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Webapi\Exception as WebapiException;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
-use Zend\Http\Response;
 
 
 /**
@@ -108,9 +109,7 @@ class Index extends Action implements CsrfAwareActionInterface
     /**
      * @inheritDoc
      */
-    public function createCsrfValidationException(
-        RequestInterface $request
-    ): ?InvalidRequestException
+    public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
     {
         return null;
     }
@@ -128,12 +127,13 @@ class Index extends Action implements CsrfAwareActionInterface
      */
     public function execute()
     {
+        /** @var HttpRequest $request */
         $request = $this->getRequest();
         /** @var HttpResponse $response */
         $response = $this->getResponse();
 
         try {
-            $storeIds = $this->authenticator->authenticate($request);
+            $storeIds = $this->authenticator->authenticate();
 
             switch ($request->getParam('action')) {
                 case 'export':
@@ -150,21 +150,21 @@ class Index extends Action implements CsrfAwareActionInterface
                     throw new LocalizedException(__('Invalid action.'));
             }
         } catch (AuthenticationFailedException $e) {
-            $result = $this->dataHelper->fault(401, __('Authentication failed'));
+            $result = $this->dataHelper->fault(WebapiException::HTTP_UNAUTHORIZED, $e->getMessage());
             $response
                 ->setHeader('WWW-Authenticate: ', 'Basic realm=ShipStation', true)
                 ->setHeader('Content-Type', 'text/xml; charset=UTF-8', true);
 
             $this->logger->error($e->getMessage(), ['authentication']);
-        } catch (LocalizedException $e) {
-            $result = $this->dataHelper->fault(Response::STATUS_CODE_400, $e->getMessage());
-            $response->setStatusCode(Response::STATUS_CODE_400);
-            $this->logger->error($e->getMessage());
         } catch (InvalidXmlException $e) {
-            $result = $this->dataHelper->fault(Response::STATUS_CODE_400, $e->getMessage());
+            $result = $this->dataHelper->fault(WebapiException::HTTP_BAD_REQUEST, $e->getMessage());
             foreach ($e->getErrors() as $error) {
                 $this->logger->error($error->message, ['ship_notify', $error->line]);
             }
+        } catch (LocalizedException $e) {
+            $result = $this->dataHelper->fault(WebapiException::HTTP_BAD_REQUEST, $e->getMessage());
+            $response->setStatusCode(WebapiException::HTTP_BAD_REQUEST);
+            $this->logger->error($e->getMessage());
         } catch (Exception $fault) {
             $result = $this->dataHelper->fault($fault->getCode(), $fault->getMessage());
             $this->logger->error($fault->getMessage());

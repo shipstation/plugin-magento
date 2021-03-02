@@ -12,11 +12,12 @@ use Magento\Framework\Exception\LocalizedException;
  */
 class InvalidXmlException extends LocalizedException
 {
-    /** @var array */
+    /** @var LibXMLError[] */
     private $errors;
 
     /**
      * InvalidXmlException constructor.
+     * @param LibXMLError[] $errors
      */
     public function __construct(array $errors)
     {
