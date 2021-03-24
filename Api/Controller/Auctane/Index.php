@@ -165,9 +165,9 @@ class Index extends Action implements CsrfAwareActionInterface
             $result = $this->dataHelper->fault(WebapiException::HTTP_BAD_REQUEST, $e->getMessage());
             $response->setStatusCode(WebapiException::HTTP_BAD_REQUEST);
             $this->logger->error($e->getMessage());
-        } catch (Exception $fault) {
-            $result = $this->dataHelper->fault($fault->getCode(), $fault->getMessage());
-            $this->logger->error($fault->getMessage());
+        } catch (Exception $e) {
+            $result = $this->dataHelper->fault($e->getCode(), $e->getMessage());
+            $this->logger->error($e->getMessage());
         }
 
         $response->setBody($result);

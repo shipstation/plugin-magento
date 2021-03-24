@@ -2,16 +2,27 @@
 
 namespace Auctane\Api\Model\Action;
 
+use Auctane\Api\Helper\Data;
+use Auctane\Api\Model\Config\Source\ImportChild;
 use Auctane\Api\Model\WeightAdapter;
 use Magento\Catalog\Model\Product\Type;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+use Magento\Directory\Model\CountryFactory;
+use Magento\Directory\Model\Region;
+use Magento\Directory\Model\ResourceModel\Region\Collection as RegionCollection;
+use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
+use Magento\Eav\Model\Config;
 use Magento\Framework\Api\SortOrder;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Request\Http as HttpRequest;
-use Magento\Framework\Exception\LocalizedException;
+use Magento\GiftMessage\Helper\Message;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Address;
 use Magento\Sales\Model\ResourceModel\Order\Collection;
+use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
+use Magento\Store\Model\ScopeInterface;
 
 
 /**
@@ -30,17 +41,11 @@ class Export
      */
     const EXPORT_SIZE = '100';
 
-    /**
-     * Order collection factory
-     *
-     * @var \Magento\Sales\Model\ResourceModel\Order\CollectionFactory
-     */
-    private $orderCollectionFactory;
 
     /**
      * Scope config
      *
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     * @var ScopeConfigInterface
      */
     private $_scopeConfig;
 
@@ -54,28 +59,21 @@ class Export
     /**
      * Helper
      *
-     * @var \Auctane\Api\Helper\Data
+     * @var Data
      */
     private $_dataHelper;
 
     /**
      * Helper
      *
-     * @var \Magento\GiftMessage\Helper\Message
+     * @var Message
      */
     private $giftMessageProvider;
 
     /**
-     * Country factory
-     *
-     * @var \Magento\Directory\Model\CountryFactory
-     */
-    private $_countryFactory;
-
-    /**
      * EAV Config instance
      *
-     * @var \Magento\Eav\Model\Config
+     * @var Config
      */
     private $_eavConfig;
 
@@ -107,80 +105,57 @@ class Export
      */
     private $_attributes = '';
 
-    /**
-     * Magento store
-     *
-     * @var \Magento\Store\Model\ScopeInterface
-     */
-    private $_store = '';
-
-    /**
-     * Product type
-     *
-     * @var Type
-     */
-    private $_typeBundle = '';
-
     /** @var WeightAdapter */
     private $weightAdapter;
+
+    /** @var CollectionFactory */
+    private $orderCollectionFactory;
+    /** @var RegionCollectionFactory */
+    private $regionCollectionFactory;
 
     /**
      * Export class constructor
      *
-     * @param \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $order order
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig config
-     * @param \Magento\Directory\Model\CountryFactory $countryFactory country factory
-     * @param \Magento\Eav\Model\Config $eavConfig config object
-     * @param \Auctane\Api\Helper\Data $dataHelper helper object
-     * @param \Magento\GiftMessage\Helper\Message $giftMessage The gift message.
+     * @param CollectionFactory $orderCollectionFactory order
+     * @param ScopeConfigInterface $scopeConfig config
+     * @param Config $eavConfig config object
+     * @param Data $dataHelper helper object
+     * @param Message $giftMessage The gift message.
      * @param WeightAdapter $weightAdapter
+     * @param RegionCollectionFactory $regionCollectionFactory
      */
     public function __construct(
-        \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $order,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Magento\Directory\Model\CountryFactory $countryFactory,
-        \Magento\Eav\Model\Config $eavConfig,
-        \Auctane\Api\Helper\Data $dataHelper,
-        \Magento\GiftMessage\Helper\Message $giftMessage,
-        WeightAdapter $weightAdapter
+        CollectionFactory $orderCollectionFactory,
+        ScopeConfigInterface $scopeConfig,
+        Config $eavConfig,
+        Data $dataHelper,
+        Message $giftMessage,
+        WeightAdapter $weightAdapter,
+        RegionCollectionFactory $regionCollectionFactory
     )
     {
-        $this->orderCollectionFactory = $order;
         $this->_scopeConfig = $scopeConfig;
-        $this->_countryFactory = $countryFactory;
         $this->_eavConfig = $eavConfig;
         $this->_dataHelper = $dataHelper;
         $this->giftMessageProvider = $giftMessage;
-        //Set the configuartion variable data
-        $this->_store = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
+        $this->weightAdapter = $weightAdapter;
+
+        $this->orderCollectionFactory = $orderCollectionFactory;
+        $this->regionCollectionFactory = $regionCollectionFactory;
+
+        // @todo Initialisation in constructor is forbidden. Move to Config object.
         //Price export type
         $exportPrice = 'shipstation_general/shipstation/export_price';
-        $this->_priceType = $this->_scopeConfig->getValue(
-            $exportPrice,
-            $this->_store
-        );
+        $this->_priceType = $this->_scopeConfig->getValue($exportPrice, ScopeInterface::SCOPE_STORE);
         //Check import discount
         $importDiscount = 'shipstation_general/shipstation/import_discounts';
-        $this->_importDiscount = $this->_scopeConfig->getValue(
-            $importDiscount,
-            $this->_store
-        );
+        $this->_importDiscount = $this->_scopeConfig->getValue($importDiscount, ScopeInterface::SCOPE_STORE);
         //Check for the import child items for the bundle product
         $importChild = 'shipstation_general/shipstation/import_child_products';
-        $this->_importChild = $this->_scopeConfig->getValue(
-            $importChild,
-            $this->_store
-        );
+        $this->_importChild = $this->_scopeConfig->getValue($importChild, ScopeInterface::SCOPE_STORE);
         //Check for the import child items for the bundle product
         $attributes = 'shipstation_general/shipstation/attribute';
-        $this->_attributes = $this->_scopeConfig->getValue(
-            $attributes,
-            $this->_store
-        );
-
-        $this->_typeBundle = Type::TYPE_BUNDLE;
-
-        $this->weightAdapter = $weightAdapter;
+        $this->_attributes = $this->_scopeConfig->getValue($attributes, ScopeInterface::SCOPE_STORE);
     }
 
     /**
@@ -281,7 +256,7 @@ class Export
         $this->addXmlElement("OrderTotal", $orderTotal);
         $this->addXmlElement("TaxAmount", $orderTax);
         $this->addXmlElement("ShippingAmount", $orderShipping);
-        $this->addXmlElement("InternalNotes", "<![CDATA[{$order->getCustomerNote()}]]>");
+        $this->_getInternalNotes($order);
         $this->addXmlElement("StoreCode", $order->getStore()->getCode());
 
         $this->_getGiftMessageInfo($order);
@@ -289,7 +264,11 @@ class Export
         $this->_xmlData .= "\t<Customer>\n";
         $this->addXmlElement("CustomerCode", $order->getCustomerEmail());
         $this->_getBillingInfo($order); //call to the billing info function
-        $this->_getShippingInfo($order); //call to the shipping info function
+
+        if ($shipping = $order->getShippingAddress()) {
+            $this->_getShippingInfo($shipping);
+        }
+
         $this->_xmlData .= "\t</Customer>\n";
         $this->_xmlData .= "\t<Items>\n";
         $this->_orderItem($order); //call to the order items function
@@ -320,6 +299,22 @@ class Export
         $this->_xmlData .= "\t\t<$strFieldName>$strResult</$strFieldName>\n";
 
         return $this;
+    }
+
+    /**
+     * Write All Internal notes into the xml response data
+     * @param Order $order
+     * @return void
+     */
+    private function _getInternalNotes(Order $order)
+    {
+        $internalNotes = array();
+        foreach ($order->getStatusHistoryCollection() as $internalNote) {
+            if (empty(trim($internalNote->getComment()))) continue;
+            array_unshift($internalNotes, $internalNote->getComment());
+        }
+        $internalNotes = implode("\n", $internalNotes);
+        $this->addXmlElement("InternalNotes", "<![CDATA[{$internalNotes}]]>");
     }
 
     /**
@@ -364,51 +359,41 @@ class Export
     }
 
     /**
-     * Get the Shipping information of order
-     *
-     * @param Order $order get shipping information
-     *
-     * @return Shipping information
+     * @param string $regionName
+     * @return Region
      */
-    private function _getShippingInfo($order)
+    private function getRegion(string $regionName): Region
     {
-        $shipping = $order->getShippingAddress();
-        if (!empty($shipping)) {
-            $name = $shipping->getFirstname() . ' ' . $shipping->getLastname();
+        /** @var RegionCollection $regionCollection */
+        $regionCollection = $this->regionCollectionFactory->create();
+        $regionCollection->addRegionNameFilter($regionName);
+        /** @var Region $region */
+        $region = $regionCollection->getFirstItem();
 
-            $country = '';
-            if ($shipping->getCountryId()) {
-                $country = $this->_countryFactory->create()
-                    ->loadByCode($shipping->getCountryId())->getName();
-            }
+        return $region;
+    }
 
-            $this->_xmlData .= "\t<ShipTo>\n";
-            $this->addXmlElement("Name", '<![CDATA[' . $name . ']]>');
-            $this->addXmlElement(
-                "Company",
-                '<![CDATA[' . $shipping->getCompany() . ']]>'
-            );
-            $this->addXmlElement(
-                "Address1",
-                '<![CDATA[' . $shipping->getStreetLine(1) . ']]>'
-            );
-            $this->addXmlElement(
-                "Address2",
-                '<![CDATA[' . $shipping->getStreetLine(2) . ']]>'
-            );
-            $this->addXmlElement(
-                "City",
-                '<![CDATA[' . $shipping->getCity() . ']]>'
-            );
-            $this->addXmlElement(
-                "State",
-                '<![CDATA[' . $shipping->getRegion() . ']]>'
-            );
-            $this->addXmlElement("PostalCode", $shipping->getPostcode());
-            $this->addXmlElement("Country", '<![CDATA[' . $country . ']]>');
-            $this->addXmlElement("Phone", $shipping->getTelephone());
-            $this->_xmlData .= "\t</ShipTo>\n";
-        }
+    /**
+     * Get the Shipping information of order.
+     *
+     * @param Address $shipping
+     * @return $this
+     */
+    private function _getShippingInfo(Address $shipping): self
+    {
+        $this->_xmlData .= "\t<ShipTo>\n";
+        $this->addXmlElement("Name", "<![CDATA[{$shipping->getFirstname()} {$shipping->getLastname()}]]>");
+        $this->addXmlElement("Company", "<![CDATA[{$shipping->getCompany()}]]>");
+        $this->addXmlElement("Address1", "<![CDATA[{$shipping->getStreetLine(1)}]]>");
+        $this->addXmlElement("Address2", "<![CDATA[{$shipping->getStreetLine(2)}]]>");
+        $this->addXmlElement("City", "<![CDATA[{$shipping->getCity()}]]>");
+        $this->addXmlElement("State", "<![CDATA[{$this->getRegion($shipping->getRegion())->getCode()}]]>");
+        $this->addXmlElement("PostalCode", $shipping->getPostcode());
+        $this->addXmlElement("Country", "<![CDATA[{$shipping->getCountryId()}]]>");
+        $this->addXmlElement("Phone", $shipping->getTelephone());
+        $this->_xmlData .= "\t</ShipTo>\n";
+
+        return $this;
     }
 
     /**
@@ -416,7 +401,6 @@ class Export
      *
      * @param Order $order
      * @return $this
-     * @throws LocalizedException
      */
     private function _orderItem(Order $order): self
     {
@@ -474,6 +458,9 @@ class Export
                     $attribute = $parentProduct->getResource()->getAttribute('small_image');
                     $imageUrl = $attribute->getFrontend()->getUrl($parentItem->getProduct());
                 }
+            }// If Import only Child is selected, import only  child items
+            elseif ($this->_importChild == ImportChild::CHILD_ONLY_VALUE) {
+                continue;
             }
 
             $this->_xmlData .= "\t<Item>\n";
@@ -518,7 +505,6 @@ class Export
      * @param array $attributeCodes
      * @param OrderItemInterface $orderItem
      * @return array
-     * @throws LocalizedException
      */
     private function _writeOrderItemAttributesAsOptions(array $attributeCodes, OrderItemInterface $orderItem)
     {
@@ -531,6 +517,7 @@ class Export
             }
 
             if ($attributeCode && $data) {
+                // @todo Use AttributeRepository instead. // On exception log and continue.
                 $attribute = $this->_eavConfig->getAttribute(
                     $this->_getEntityType(),
                     $attributeCode
