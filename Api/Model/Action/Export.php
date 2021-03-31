@@ -7,7 +7,6 @@ use Auctane\Api\Model\Config\Source\ImportChild;
 use Auctane\Api\Model\WeightAdapter;
 use Magento\Catalog\Model\Product\Type;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
-use Magento\Directory\Model\CountryFactory;
 use Magento\Directory\Model\Region;
 use Magento\Directory\Model\ResourceModel\Region\Collection as RegionCollection;
 use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
@@ -240,7 +239,7 @@ class Export
 
         $this->addXmlElement(
             "ShippingMethod",
-            "{$order->getShippingDescription()}|{$order->getShippingMethod()}"
+            "<![CDATA[{$order->getShippingDescription()}|{$order->getShippingMethod()}]]>"
         );
 
         if ($this->_priceType) {
