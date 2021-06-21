@@ -232,10 +232,6 @@ class ShipNotify
             $order->setIsInProcess(true);
 
             $this->_saveTransaction($order, $invoice);
-
-            if ($notify) {
-                $this->_invoiceSender->send($invoice);
-            }
         }
 
         if (!$order->canShip()) {
@@ -243,6 +239,13 @@ class ShipNotify
         }
 
         $this->_getOrderShipment($order, $qtys, $xml);
+
+        // ShipStation sometimes issue two shipnotify with the same parameters which would cause an invoice email to be
+        // send twice to a customer. We place the send logic here because the second shipnotify will fail when
+        // trying to create an already existing shipment which will prevent this block from being reached.
+        if (isset($invoice) && isset($notify) && $notify) {
+            $this->_invoiceSender->send($invoice);
+        }
 
         return "";
     }

@@ -31,38 +31,14 @@ use Psr\Log\LoggerInterface;
  */
 class Index extends Action implements CsrfAwareActionInterface
 {
-    /**
-     * @var Authenticator
-     */
+    /** @var Authenticator */
     private $authenticator;
-    /**
-     * @var StoreManagerInterface
-     */
-    private $storeManager;
-    /**
-     * @var StorageInterface
-     */
-    private $storage;
-    /**
-     * @var ScopeConfigInterface
-     */
-    private $scopeConfig;
-    /**
-     * @var Data
-     */
+    /** @var Data */
     private $dataHelper;
-    /**
-     * @var Export
-     */
+    /** @var Export */
     private $export;
-    /**
-     * @var ShipNotify
-     */
+    /** @var ShipNotify */
     private $shipNotify;
-    /**
-     * @var RedirectFactory
-     */
-    private $redirectFactory;
     /** @var LoggerInterface */
     private $logger;
 
@@ -70,38 +46,26 @@ class Index extends Action implements CsrfAwareActionInterface
     /**
      * Index constructor.
      * @param Context $context
-     * @param StoreManagerInterface $storeManager
-     * @param StorageInterface $storage
-     * @param ScopeConfigInterface $scopeConfig
      * @param Data $dataHelper
      * @param Export $export
      * @param ShipNotify $shipNotify
-     * @param RedirectFactory $redirectFactory
      * @param Authenticator $authenticator
      * @param LoggerInterface $logger
      */
     public function __construct(
         Context $context,
-        StoreManagerInterface $storeManager,
-        StorageInterface $storage,
-        ScopeConfigInterface $scopeConfig,
         Data $dataHelper,
         Export $export,
         ShipNotify $shipNotify,
-        RedirectFactory $redirectFactory,
         Authenticator $authenticator,
         LoggerInterface $logger
     )
     {
         parent::__construct($context);
 
-        $this->storeManager = $storeManager;
-        $this->storage = $storage;
-        $this->scopeConfig = $scopeConfig;
         $this->dataHelper = $dataHelper;
         $this->export = $export;
         $this->shipNotify = $shipNotify;
-        $this->redirectFactory = $redirectFactory;
         $this->authenticator = $authenticator;
         $this->logger = $logger;
     }
@@ -143,7 +107,6 @@ class Index extends Action implements CsrfAwareActionInterface
 
                 case 'shipnotify':
                     $result = $this->shipNotify->process();
-                    // if there hasn't been an error then "200 OK" is given
                     break;
 
                 default:

@@ -328,7 +328,7 @@ class Export
             $this->addXmlElement("GiftMessage", "<![CDATA[From: {$gift->getSender()}\nTo: {$gift->getRecipient()}\nMessage: {$gift->getMessage()}]]>");
         }
 
-        $this->addXmlElement("Gift", !is_null($giftId));
+        $this->addXmlElement("Gift", !is_null($giftId) ? 'true' : 'false');
 
         return $this;
     }
@@ -380,14 +380,19 @@ class Export
      */
     private function _getShippingInfo(Address $shipping): self
     {
+        $state = '';
+        if ($shipping->getRegion()) {
+            $state = $this->getRegion($shipping->getRegion())->getCode();
+        }
+
         $this->_xmlData .= "\t<ShipTo>\n";
         $this->addXmlElement("Name", "<![CDATA[{$shipping->getFirstname()} {$shipping->getLastname()}]]>");
         $this->addXmlElement("Company", "<![CDATA[{$shipping->getCompany()}]]>");
         $this->addXmlElement("Address1", "<![CDATA[{$shipping->getStreetLine(1)}]]>");
         $this->addXmlElement("Address2", "<![CDATA[{$shipping->getStreetLine(2)}]]>");
         $this->addXmlElement("City", "<![CDATA[{$shipping->getCity()}]]>");
-        $this->addXmlElement("State", "<![CDATA[{$this->getRegion($shipping->getRegion())->getCode()}]]>");
-        $this->addXmlElement("PostalCode", $shipping->getPostcode());
+        $this->addXmlElement("State", "<![CDATA[{$state}]]>");
+        $this->addXmlElement("PostalCode", "<![CDATA[{$shipping->getPostcode()}]]>");
         $this->addXmlElement("Country", "<![CDATA[{$shipping->getCountryId()}]]>");
         $this->addXmlElement("Phone", $shipping->getTelephone());
         $this->_xmlData .= "\t</ShipTo>\n";
@@ -458,7 +463,7 @@ class Export
                     $imageUrl = $attribute->getFrontend()->getUrl($parentItem->getProduct());
                 }
             }// If Import only Child is selected, import only  child items
-            elseif ($this->_importChild == ImportChild::CHILD_ONLY_VALUE) {
+            elseif ($this->_importChild == ImportChild::CHILD_ONLY_VALUE && $orderItem->getProductType() == Type::TYPE_BUNDLE) {
                 continue;
             }
 
