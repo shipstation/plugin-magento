@@ -231,11 +231,11 @@ class Export
     private function writeOrderXml(Order $order): self
     {
         $this->_xmlData .= "\t<Order>\n";
-        $this->addXmlElement("OrderNumber", $order->getIncrementId());
-        $this->addXmlElement("OrderDate", $order->getCreatedAt());
-        $this->addXmlElement("OrderStatus", $order->getStatus());
-        $this->addXmlElement("LastModified", $order->getUpdatedAt());
-        $this->addXmlElement("CurrencyCode", $order->getOrderCurrencyCode());
+        $this->addXmlElement("OrderNumber", "<![CDATA[{$order->getIncrementId()}]]>");
+        $this->addXmlElement("OrderDate", "<![CDATA[{$order->getCreatedAt()}]]>");
+        $this->addXmlElement("OrderStatus", "<![CDATA[{$order->getStatus()}]]>");
+        $this->addXmlElement("LastModified", "<![CDATA[{$order->getUpdatedAt()}]]>");
+        $this->addXmlElement("CurrencyCode", "<![CDATA[{$order->getOrderCurrencyCode()}]]>");
 
         $this->addXmlElement(
             "ShippingMethod",
@@ -252,16 +252,16 @@ class Export
             $orderShipping = $order->getShippingAmount();
         }
 
-        $this->addXmlElement("OrderTotal", $orderTotal);
-        $this->addXmlElement("TaxAmount", $orderTax);
-        $this->addXmlElement("ShippingAmount", $orderShipping);
+        $this->addXmlElement("OrderTotal", "<![CDATA[{$orderTotal}]]>");
+        $this->addXmlElement("TaxAmount", "<![CDATA[{$orderTax}]]>");
+        $this->addXmlElement("ShippingAmount", "<![CDATA[{$orderShipping}]]>");
         $this->_getInternalNotes($order);
-        $this->addXmlElement("StoreCode", $order->getStore()->getCode());
+        $this->addXmlElement("StoreCode", "<![CDATA[{$order->getStore()->getCode()}]]>");
 
         $this->_getGiftMessageInfo($order);
 
         $this->_xmlData .= "\t<Customer>\n";
-        $this->addXmlElement("CustomerCode", $order->getCustomerEmail());
+        $this->addXmlElement("CustomerCode", "<![CDATA[{$order->getCustomerEmail()}]]>");
         $this->_getBillingInfo($order); //call to the billing info function
 
         if ($shipping = $order->getShippingAddress()) {
@@ -336,25 +336,25 @@ class Export
     /**
      * Get the Billing information of order
      *
-     * @param Order $order billing information
-     *
-     * @return billing information
+     * @param Order $order
+     * @return $this
      */
-    private function _getBillingInfo($order)
+    private function _getBillingInfo(Order $order): self
     {
         $billing = $order->getBillingAddress();
-        if (!empty($billing)) {
-            $name = $billing->getFirstname() . ' ' . $billing->getLastname();
-            $this->_xmlData .= "\t<BillTo>\n";
-            $this->addXmlElement("Name", '<![CDATA[' . $name . ']]>');
-            $this->addXmlElement(
-                "Company",
-                '<![CDATA[' . $billing->getCompany() . ']]>'
-            );
-            $this->addXmlElement("Phone", $billing->getTelephone());
-            $this->addXmlElement("Email", $order->getCustomerEmail());
-            $this->_xmlData .= "\t</BillTo>\n";
+
+        if (is_null($billing)) {
+            return $this;
         }
+
+        $this->_xmlData .= "\t<BillTo>\n";
+        $this->addXmlElement("Name", "<![CDATA[{$billing->getFirstname()} {$billing->getLastname()}]]>");
+        $this->addXmlElement("Company", "<![CDATA[{$billing->getCompany()}]]>");
+        $this->addXmlElement("Phone", "<![CDATA[{$billing->getTelephone()}]]>");
+        $this->addXmlElement("Email", "<![CDATA[{$order->getCustomerEmail()}]]>");
+        $this->_xmlData .= "\t</BillTo>\n";
+
+        return $this;
     }
 
     /**
@@ -394,7 +394,7 @@ class Export
         $this->addXmlElement("State", "<![CDATA[{$state}]]>");
         $this->addXmlElement("PostalCode", "<![CDATA[{$shipping->getPostcode()}]]>");
         $this->addXmlElement("Country", "<![CDATA[{$shipping->getCountryId()}]]>");
-        $this->addXmlElement("Phone", $shipping->getTelephone());
+        $this->addXmlElement("Phone", "<![CDATA[{$shipping->getTelephone()}]]>");
         $this->_xmlData .= "\t</ShipTo>\n";
 
         return $this;
@@ -469,13 +469,13 @@ class Export
 
             $this->_xmlData .= "\t<Item>\n";
 
-            $this->addXmlElement("SKU", $orderItem->getSku());
-            $this->addXmlElement("Name", '<![CDATA[' . $name . ']]>');
-            $this->addXmlElement("ImageUrl", $imageUrl);
-            $this->addXmlElement("Weight", $foreighWeight->getValue());
-            $this->addXmlElement("WeightUnits", $foreighWeight->getUnit());
-            $this->addXmlElement("UnitPrice", $price);
-            $this->addXmlElement("Quantity", (int)$orderItem->getQtyOrdered());
+            $this->addXmlElement("SKU", "<![CDATA[{$orderItem->getSku()}]]>");
+            $this->addXmlElement("Name", "<![CDATA[{$name}]]>");
+            $this->addXmlElement("ImageUrl", "<![CDATA[{$imageUrl}]]>");
+            $this->addXmlElement("Weight", "<![CDATA[{$foreighWeight->getValue()}]]>");
+            $this->addXmlElement("WeightUnits", "<![CDATA[{$foreighWeight->getUnit()}]]>");
+            $this->addXmlElement("UnitPrice", "<![CDATA[{$price}]]>");
+            $this->addXmlElement("Quantity", "<![CDATA[". (int)$orderItem->getQtyOrdered() ."]]>");
 
             $this->_getGiftMessageInfo($orderItem);
             /*
@@ -623,11 +623,11 @@ class Export
         }
 
         $this->_xmlData .= "\t<Item>\n";
-        $this->addXmlElement("SKU", $code);
+        $this->addXmlElement("SKU", "<![CDATA[{$code}]]>");
         $this->addXmlElement("Name", '');
         $this->addXmlElement("Adjustment", 'true');
         $this->addXmlElement("Quantity", 1);
-        $this->addXmlElement("UnitPrice", $order->getDiscountAmount());
+        $this->addXmlElement("UnitPrice", "<![CDATA[{$order->getDiscountAmount()}]]>");
         $this->_xmlData .= "\t</Item>\n";
     }
 }
