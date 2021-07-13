@@ -6,11 +6,12 @@
 namespace Auctane\Api\Model;
 
 use Exception;
+use Magento\Framework\Exception\LocalizedException;
 
-class ShipmentCannotBeCreatedForOrderException extends Exception
+class ShipmentCannotBeCreatedForOrderException extends LocalizedException
 {
     public function __construct($orderId)
     {
-        parent::__construct("Shipment can not be created for Order : {$orderId}", 400);
+        parent::__construct(__("Shipment can not be created for Order : %1", $orderId), null, 400);
     }
 }
