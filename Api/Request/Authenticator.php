@@ -6,6 +6,8 @@ use Auctane\Api\Exception\AuthenticationFailedException;
 use Magento\Backend\Model\Auth\Credential\StorageInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Request\Http;
+use Magento\Framework\Oauth\Exception;
+use Magento\Framework\Oauth\TokenProviderInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -22,6 +24,8 @@ class Authenticator
     private $scopeConfig;
     /** @var StoreManagerInterface */
     private $storeManager;
+    /** @var TokenProviderInterface */
+    private $tokenProvider;
     /** @var Http */
     private $request;
 
@@ -31,18 +35,21 @@ class Authenticator
      * @param StorageInterface $storage
      * @param ScopeConfigInterface $scopeConfig
      * @param StoreManagerInterface $storeManager
+     * @param TokenProviderInterface $tokenProvider
      * @param Http $request
      */
     public function __construct(
         StorageInterface $storage,
         ScopeConfigInterface $scopeConfig,
         StoreManagerInterface $storeManager,
+        TokenProviderInterface $tokenProvider,
         Http $request
     )
     {
         $this->storage = $storage;
         $this->scopeConfig = $scopeConfig;
         $this->storeManager = $storeManager;
+        $this->tokenProvider = $tokenProvider;
         $this->request = $request;
 
     }
@@ -53,10 +60,22 @@ class Authenticator
      *
      * @return string[]
      * @throws AuthenticationFailedException
+     * @throws \Exception
      */
     public function authenticate(): array
     {
         $storeIds = null;
+
+        // Matching SEC request
+        if ( $accessToken = $this->request->getHeader('SEC-Access-Token') ) {
+            try {
+                $this->tokenProvider->validateAccessToken($accessToken);
+                $storeIds = [];
+                if ( $SECStoreIds = $this->request->getHeader('SEC-Store-IDs') ) {
+                    $storeIds = explode(",", $SECStoreIds);
+                }
+            } catch (Exception $e) {}
+        }
 
         // Matching api key at store level.
         if ($apiKey = $this->request->getHeader('ShipStation-Access-Token')) {
