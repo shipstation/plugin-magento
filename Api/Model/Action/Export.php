@@ -176,7 +176,7 @@ class Export
         $this->_attributes = $this->_scopeConfig->getValue(
             $attributes,
             $this->_store
-        );
+        ) ?? '';
 
         $this->_typeBundle = Type::TYPE_BUNDLE;
 
