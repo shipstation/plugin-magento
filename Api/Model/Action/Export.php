@@ -482,7 +482,7 @@ class Export
              * Check for the attributes
              */
             $this->_xmlData .= "\t<Options>\n";
-            $attributeCodes = explode(',', $this->_attributes);
+            $attributeCodes = explode(',', $this->_attributes ?? '');
             $this->_writeOrderItemAttributesAsOptions($attributeCodes, $orderItem);
 
             //custom attribute selection.

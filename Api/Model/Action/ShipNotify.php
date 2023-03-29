@@ -419,7 +419,7 @@ class ShipNotify
     {
         $shipment = $this->_shipmentFactory->create($order, $qtys, [[
             'number' => $xml->TrackingNumber,
-            'carrier_code' =>  $xml->Carrier,
+            'carrier_code' =>  strtolower($xml->Carrier),
             'title' => strtoupper($xml->Carrier)
         ]]);
 

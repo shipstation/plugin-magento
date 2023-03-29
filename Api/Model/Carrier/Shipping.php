@@ -160,8 +160,8 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
             // Creation of the data contract
             $shippingRequest = array();
 
-            // If there's an already selected ShipStation shipping method then this method is being called 
-            // expecting that this method will be returned as a verification. Use the verify endpoint. 
+            // If there's an already selected ShipStation shipping method then this method is being called
+            // expecting that this method will be returned as a verification. Use the verify endpoint.
             // Otherwise, it's a standard rates request, use the rate endpoint.
             $currentMethod = $this->cart->getQuote()->getShippingAddress()->getShippingMethod();
 
@@ -239,7 +239,7 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
      * @return \Magento\Framework\DataObject
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
-    protected function _doShipmentRequest(\Magento\Framework\DataObject $request) 
+    protected function _doShipmentRequest(\Magento\Framework\DataObject $request)
     {
 
     }
@@ -251,40 +251,40 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
      * @param string $startString
      * @return bool
      */
-    protected function _startsWith ($string, $startString) 
-    { 
-        $len = strlen($startString); 
-        return (substr($string, 0, $len) === $startString); 
-    } 
+    protected function _startsWith ($string, $startString)
+    {
+        $len = strlen($startString);
+        return (substr($string, 0, $len) === $startString);
+    }
 
     /**
-     * Posts supplied JSON to a supplied endpoint 
+     * Posts supplied JSON to a supplied endpoint
      *
      * @param string $endPoint
      * @param string $requestJson
      * @return \Zend\Http\Response
      */
-    protected function _callApi ($endPoint, $requestJson) 
-    { 
+    protected function _callApi ($endPoint, $requestJson)
+    {
         $this->zendClient->reset();
         $this->zendClient->setUri($endPoint);
-        $this->zendClient->setMethod(\Zend\Http\Request::METHOD_POST); 
+        $this->zendClient->setMethod(\Zend\Http\Request::METHOD_POST);
         $this->zendClient->setHeaders(['Content-Type' => 'application/json','Accept' => 'application/json']);
         $this->zendClient->setMethod('POST');
         $this->zendClient->setRawBody($requestJson);
         $this->zendClient->setEncType('application/json');
         $this->zendClient->send();
         return $this->zendClient->getResponse();
-    } 
+    }
 
     /**
-     * Posts supplied JSON to a supplied endpoint 
+     * Posts supplied JSON to a supplied endpoint
      *
      * @param object $shipStationMethod
      * @return \Magento\Quote\Model\Quote\Address\RateResult\Method
      */
-    protected function _createShippingMethod ($shipStationMethod) 
-    { 
+    protected function _createShippingMethod ($shipStationMethod)
+    {
         /** @var \Magento\Quote\Model\Quote\Address\RateResult\Method $method */
         $method = $this->rateMethodFactory->create();
         // Must be the unique code specified
@@ -297,7 +297,7 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
         $method->setPrice($shippingCost);
         $method->setCost($shippingCost);
         return $method;
-    } 
+    }
 
     /**
      * Returns an object formatted for a ShipStation rates request
@@ -312,11 +312,11 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
         $scopeTypeStore = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
 
         // Destination address lines are concatenated in the RateRequest object so explode here.
-        $streetLines = explode("\n",$request->getDestStreet());
-        $origStreetLines = explode("\n",$request->getDestStreet());
+        $streetLines = explode("\n",$request->getDestStreet() ?? '');
+        $origStreetLines = explode("\n",$request->getDestStreet() ?? '');
 
         $shippingRequest['origin_store'] = array
-        (    
+        (
             'street_1' => $this->_scopeConfig->getValue('general/store_information/street_line1',  $scopeTypeStore),
             'street_2' => $this->_scopeConfig->getValue('general/store_information/street_line2',  $scopeTypeStore),
             'zip' => $this->_scopeConfig->getValue('general/store_information/postcode',  $scopeTypeStore),
@@ -325,7 +325,7 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
             'country' => $this->_scopeConfig->getValue('general/store_information/country_id',  $scopeTypeStore),
         );
         $shippingRequest['origin'] = array
-        (    
+        (
             'street_1' => $this->_scopeConfig->getValue('shipping/origin/street_line1',  $scopeTypeStore),
             'street_2' => $this->_scopeConfig->getValue('shipping/origin/street_line2',  $scopeTypeStore),
             'zip' => $this->_scopeConfig->getValue('shipping/origin/postcode',  $scopeTypeStore),
@@ -351,7 +351,7 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
                     'sku' => $item->getsku(),
                     'product_id' => $item->getitem_id(),
                     'name' => $item->getname(),
-                    'weight' => array('units' => $this->_scopeConfig->getValue('general/locale/weight_unit', $scopeTypeStore), 
+                    'weight' => array('units' => $this->_scopeConfig->getValue('general/locale/weight_unit', $scopeTypeStore),
                                     'value' => $item->getWeight()),
                     'price_per_item' => array( 'currency' =>$this->storeManager->getStore()->getCurrentCurrency()->getCode(), 'amount' => strval($item->getPrice())),
                     'quantity' => $item->getQty(),
@@ -364,4 +364,4 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
         $shippingRequest['magento_version'] = $this->productMetadata->getVersion();
         return $shippingRequest;
     }
-} 
+}
