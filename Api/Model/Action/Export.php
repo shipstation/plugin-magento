@@ -334,7 +334,7 @@ class Export
             $this->addXmlElement("GiftMessage", "<![CDATA[From: {$gift->getSender()}\nTo: {$gift->getRecipient()}\nMessage: {$gift->getMessage()}]]>");
         }
 
-        $this->addXmlElement("Gift", !is_null($giftId));
+        $this->addXmlElement("Gift", !is_null($giftId) ? 'true' : 'false');
 
         return $this;
     }
