@@ -38,7 +38,7 @@
                 <field id="import_child_products" translate="label" type="select" sortOrder="20"
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Import Child Products</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <source_model>Auctane\Api\Model\Config\Source\ImportChild</source_model>
                 </field>
                 <field id="custom_invoicing" translate="label" type="select" sortOrder="25"
                        showInDefault="1" showInWebsite="1" showInStore="1">

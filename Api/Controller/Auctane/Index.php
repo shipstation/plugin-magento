@@ -20,9 +20,9 @@ use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Response\Http as HttpResponse;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Webapi\Exception as WebapiException;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
-use Zend\Http\Response;
 
 
 /**
@@ -31,38 +31,14 @@ use Zend\Http\Response;
  */
 class Index extends Action implements CsrfAwareActionInterface
 {
-    /**
-     * @var Authenticator
-     */
+    /** @var Authenticator */
     private $authenticator;
-    /**
-     * @var StoreManagerInterface
-     */
-    private $storeManager;
-    /**
-     * @var StorageInterface
-     */
-    private $storage;
-    /**
-     * @var ScopeConfigInterface
-     */
-    private $scopeConfig;
-    /**
-     * @var Data
-     */
+    /** @var Data */
     private $dataHelper;
-    /**
-     * @var Export
-     */
+    /** @var Export */
     private $export;
-    /**
-     * @var ShipNotify
-     */
+    /** @var ShipNotify */
     private $shipNotify;
-    /**
-     * @var RedirectFactory
-     */
-    private $redirectFactory;
     /** @var LoggerInterface */
     private $logger;
 
@@ -70,38 +46,26 @@ class Index extends Action implements CsrfAwareActionInterface
     /**
      * Index constructor.
      * @param Context $context
-     * @param StoreManagerInterface $storeManager
-     * @param StorageInterface $storage
-     * @param ScopeConfigInterface $scopeConfig
      * @param Data $dataHelper
      * @param Export $export
      * @param ShipNotify $shipNotify
-     * @param RedirectFactory $redirectFactory
      * @param Authenticator $authenticator
      * @param LoggerInterface $logger
      */
     public function __construct(
         Context $context,
-        StoreManagerInterface $storeManager,
-        StorageInterface $storage,
-        ScopeConfigInterface $scopeConfig,
         Data $dataHelper,
         Export $export,
         ShipNotify $shipNotify,
-        RedirectFactory $redirectFactory,
         Authenticator $authenticator,
         LoggerInterface $logger
     )
     {
         parent::__construct($context);
 
-        $this->storeManager = $storeManager;
-        $this->storage = $storage;
-        $this->scopeConfig = $scopeConfig;
         $this->dataHelper = $dataHelper;
         $this->export = $export;
         $this->shipNotify = $shipNotify;
-        $this->redirectFactory = $redirectFactory;
         $this->authenticator = $authenticator;
         $this->logger = $logger;
     }
@@ -109,9 +73,7 @@ class Index extends Action implements CsrfAwareActionInterface
     /**
      * @inheritDoc
      */
-    public function createCsrfValidationException(
-        RequestInterface $request
-    ): ?InvalidRequestException
+    public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
     {
         return null;
     }
@@ -129,12 +91,13 @@ class Index extends Action implements CsrfAwareActionInterface
      */
     public function execute()
     {
+        /** @var HttpRequest $request */
         $request = $this->getRequest();
         /** @var HttpResponse $response */
         $response = $this->getResponse();
 
         try {
-            $storeIds = $this->authenticator->authenticate($request);
+            $storeIds = $this->authenticator->authenticate();
 
             switch ($request->getParam('action')) {
                 case 'export':
@@ -144,31 +107,30 @@ class Index extends Action implements CsrfAwareActionInterface
 
                 case 'shipnotify':
                     $result = $this->shipNotify->process();
-                    // if there hasn't been an error then "200 OK" is given
                     break;
 
                 default:
                     throw new LocalizedException(__('Invalid action.'));
             }
         } catch (AuthenticationFailedException $e) {
-            $result = $this->dataHelper->fault(401, 'Authentication failed');
+            $result = $this->dataHelper->fault(WebapiException::HTTP_UNAUTHORIZED, $e->getMessage());
             $response
                 ->setHeader('WWW-Authenticate: ', 'Basic realm=ShipStation', true)
                 ->setHeader('Content-Type', 'text/xml; charset=UTF-8', true);
 
             $this->logger->error($e->getMessage(), ['authentication']);
-        } catch (LocalizedException $e) {
-            $result = $this->dataHelper->fault(Response::STATUS_CODE_400, $e->getMessage());
-            $response->setStatusCode(Response::STATUS_CODE_400);
-            $this->logger->error($e->getMessage());
         } catch (InvalidXmlException $e) {
-            $result = $this->dataHelper->fault(Response::STATUS_CODE_400, $e->getMessage());
+            $result = $this->dataHelper->fault(WebapiException::HTTP_BAD_REQUEST, $e->getMessage());
             foreach ($e->getErrors() as $error) {
                 $this->logger->error($error->message, ['ship_notify', $error->line]);
             }
-        } catch (Exception $fault) {
-            $result = $this->dataHelper->fault($fault->getCode(), $fault->getMessage());
-            $this->logger->error($fault->getMessage());
+        } catch (LocalizedException $e) {
+            $result = $this->dataHelper->fault(WebapiException::HTTP_BAD_REQUEST, $e->getMessage());
+            $response->setStatusCode(WebapiException::HTTP_BAD_REQUEST);
+            $this->logger->error($e->getMessage());
+        } catch (Exception $e) {
+            $result = $this->dataHelper->fault($e->getCode(), $e->getMessage());
+            $this->logger->error($e->getMessage());
         }
 
         $response->setBody($result);

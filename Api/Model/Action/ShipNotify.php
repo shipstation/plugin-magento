@@ -232,19 +232,68 @@ class ShipNotify
             $order->setIsInProcess(true);
 
             $this->_saveTransaction($order, $invoice);
-
-            if ($notify) {
-                $this->_invoiceSender->send($invoice);
-            }
         }
 
-        if (!$order->canShip()) {
-            throw new ShipmentCannotBeCreatedForOrderException($xml->OrderID);
+        $shippingError = $this->_canShip($order);
+        if (!empty($shippingError)) {
+            throw new ShipmentCannotBeCreatedForOrderException($xml->OrderID, $shippingError);
         }
 
         $this->_getOrderShipment($order, $qtys, $xml);
 
+        // ShipStation sometimes issue two shipnotify with the same parameters which would cause an invoice email to be
+        // send twice to a customer. We place the send logic here because the second shipnotify will fail when
+        // trying to create an already existing shipment which will prevent this block from being reached.
+        if (isset($invoice) && isset($notify) && $notify) {
+            $this->_invoiceSender->send($invoice);
+        }
+
         return "";
+    }
+
+    /**
+     * Check if an order can be shipped. Return detailed errors if not
+     *
+     * @param Order $order
+     * @return array
+     */
+    private function _canShip(Order $order): array
+    {
+        $errors = [];
+        if ($order->canUnhold() || $order->isPaymentReview()) {
+            $errors[] = "Order is in Payment Review state. Please check payment";
+        }
+        if ($order->getIsVirtual()){
+            $errors[] = "Order is virtual, can't be shipped";
+        }
+        if ($order->isCanceled()) {
+            $errors[] = "Order is cancelled";
+        }
+        if ($order->getActionFlag(Order::ACTION_FLAG_SHIP) === false) {
+            $errors[] = "Order has already been shipped";
+        }
+
+        if(!$this->_canShipItems($order)){
+            $errors[] = "No order item can be sent";
+        }
+        return $errors;
+    }
+
+    /**
+     * check if at least one item can be shipped
+     *
+     * @param Order $order
+     * @return bool
+     */
+    private function _canShipItems(Order $order): bool
+    {
+        foreach ($order->getAllItems() as $item) {
+            if ($item->getQtyToShip() > 0 && !$item->getIsVirtual() &&
+                !$item->getLockedDoShip() && !($item->getQtyRefunded() == $item->getQtyOrdered())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
