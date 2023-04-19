@@ -29,7 +29,7 @@ class NoConfigNotification implements \Magento\Framework\Notification\MessageInt
 
         // If any of these are empty, it needs reconfiguring.
         $option_key = $this->_scopeConfig->getValue('carriers/shipstation/option_key', $scopeTypeDefault);
-        error_log($option_key);
+        error_log($option_key ?? '');
         if (empty($option_key)) return true;
 
         $marketplace_key = $this->_scopeConfig->getValue('carriers/shipstation/marketplace_key', $scopeTypeDefault);
