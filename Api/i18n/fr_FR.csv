@@ -21,3 +21,4 @@
 "The ShipStation Shipping Rates plugin has been installed but not configured. Please log in to ShipStation and configure Magento from there. This message can be removed by disabling ShipStation in the Shipping Methods configuration.",""
 "Order '%1' does not exist","La commande '%1' n'existe pas."
 "Shipment can not be created for Order : %1","L'expédition n'a pu être créée pour la commande : %1"
+"estimated transit days","jours de transit estimés"

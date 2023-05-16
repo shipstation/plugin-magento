@@ -291,12 +291,39 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
         $method->setCarrier($this->_code);
         $method->setCarrierTitle($this->getConfigData('title'));
         $method->setMethod($shipStationMethod->code);
-        $method->setMethodTitle($shipStationMethod->display_name);
-        $method->setMethodDescription($shipStationMethod->display_name);
+        $method->setMethodTitle($this->formatShippingMethodTitle($shipStationMethod));
+        $method->setMethodDescription($shipStationMethod->description ?? '');
         $shippingCost = (float)$shipStationMethod->cost->amount;
         $method->setPrice($shippingCost);
         $method->setCost($shippingCost);
         return $method;
+    }
+
+    /**
+     * @param $shipStationMethod
+     * @return string
+     */
+    protected function formatShippingMethodTitle($shipStationMethod)
+    {
+        $displayName = $shipStationMethod->display_name;
+        if(isset($shipStationMethod->min_transit_days) || isset($shipStationMethod->max_transit_days)){
+            $displayName .= ", ";
+            if(isset($shipStationMethod->min_transit_days) && isset($shipStationMethod->max_transit_days)){
+                $displayName .= sprintf("%s - %s", $shipStationMethod->min_transit_days, $shipStationMethod->max_transit_days);
+            }else{
+                if(isset($shipStationMethod->min_transit_days)){
+                    $displayName .= sprintf("min %s", $shipStationMethod->min_transit_days);
+                }
+                if(isset($shipStationMethod->max_transit_days)){
+                    $displayName .= sprintf("max %s", $shipStationMethod->max_transit_days);
+                }
+            }
+            $displayName .= " estimated transit days";
+        }
+        if(isset($shipStationMethod->description)){
+            $displayName .= ', ' . $shipStationMethod->description;
+        }
+        return $displayName;
     }
 
     /**
