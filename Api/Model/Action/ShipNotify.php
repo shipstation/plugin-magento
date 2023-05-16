@@ -418,9 +418,9 @@ class ShipNotify
     private function _getOrderShipment(Order $order, array $qtys, SimpleXMLElement $xml): self
     {
         $shipment = $this->_shipmentFactory->create($order, $qtys, [[
-            'number' => $xml->TrackingNumber,
-            'carrier_code' =>  strtolower($xml->Carrier),
-            'title' => strtoupper($xml->Carrier)
+            'number' => (string) $xml->TrackingNumber,
+            'carrier_code' =>  strtolower((string) $xml->Carrier),
+            'title' => strtoupper((string) $xml->Carrier)
         ]]);
 
         if ($xml->RequestedWarehouse) {

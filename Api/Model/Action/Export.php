@@ -272,7 +272,7 @@ class Export
         $this->_xmlData .= "\t<Items>\n";
         $this->_orderItem($order); //call to the order items function
         //Get the order discounts
-        if ($this->_importDiscount && $order->getDiscountAmount() != '0.0000') {
+        if ($this->_importDiscount && !is_null($order->getDiscountAmount()) && $order->getDiscountAmount() != '0.0000') {
             $this->_getOrderDiscounts($order);
         }
 
