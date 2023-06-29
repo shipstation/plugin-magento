@@ -309,7 +309,7 @@ class Export
     {
         $internalNotes = array();
         foreach ($order->getStatusHistoryCollection() as $internalNote) {
-            if (empty(trim($internalNote->getComment()))) continue;
+            if (empty(trim($internalNote->getComment() ?? ""))) continue; // You can no longer trim a null string in PHP8.
             array_unshift($internalNotes, $internalNote->getComment());
         }
         $internalNotes = implode("\n", $internalNotes);
