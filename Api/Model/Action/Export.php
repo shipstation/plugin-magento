@@ -467,6 +467,10 @@ class Export
                 continue;
             }
 
+            if (empty($price) {
+                $price = '0.00';
+            }
+
             $this->_xmlData .= "\t<Item>\n";
 
             $this->addXmlElement("SKU", "<![CDATA[{$orderItem->getSku()}]]>");
