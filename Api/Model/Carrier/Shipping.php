@@ -24,7 +24,7 @@ use Magento\Shipping\Model\Simplexml\ElementFactory;
 use Magento\Shipping\Model\Tracking\Result\StatusFactory;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
-use Zend\Http\Client;
+use Laminas\Http\Client;
 
 /**
  * Custom shipping model
@@ -37,9 +37,9 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
     protected $storeManager;
 
     /**
-     * @var \Zend\Http\Client
+     * @var \Laminas\Http\Client
      */
-    protected $zendClient;
+    protected $laminasClient;
 
     /**
      * @var \Magento\Framework\App\ProductMetadataInterface
@@ -97,7 +97,7 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
         CurrencyFactory $currencyFactory,
         Data $directoryData,
         StockRegistryInterface $stockRegistry,
-        Client $zendClient,
+        Client $laminasClient,
         StoreManagerInterface $storeManager,
         ProductMetadataInterface $productMetadata,
         WriterInterface $configWriter,
@@ -127,7 +127,7 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
         $this->rateResultFactory = $rateFactory;
         $this->rateMethodFactory = $rateMethodFactory;
         $this->productMetadata = $productMetadata;
-        $this->zendClient = $zendClient;
+        $this->laminasClient = $laminasClient;
         $this->storeManager = $storeManager;
         $this->configWriter = $configWriter;
         $this->class = new \ReflectionClass($this);
@@ -262,19 +262,19 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
      *
      * @param string $endPoint
      * @param string $requestJson
-     * @return \Zend\Http\Response
+     * @return \Laminas\Http\Response
      */
     protected function _callApi ($endPoint, $requestJson)
     {
-        $this->zendClient->reset();
-        $this->zendClient->setUri($endPoint);
-        $this->zendClient->setMethod(\Zend\Http\Request::METHOD_POST);
-        $this->zendClient->setHeaders(['Content-Type' => 'application/json','Accept' => 'application/json']);
-        $this->zendClient->setMethod('POST');
-        $this->zendClient->setRawBody($requestJson);
-        $this->zendClient->setEncType('application/json');
-        $this->zendClient->send();
-        return $this->zendClient->getResponse();
+        $this->laminasClient->reset();
+        $this->laminasClient->setUri($endPoint);
+        $this->laminasClient->setMethod(\Laminas\Http\Request::METHOD_POST);
+        $this->laminasClient->setHeaders(['Content-Type' => 'application/json','Accept' => 'application/json']);
+        $this->laminasClient->setMethod('POST');
+        $this->laminasClient->setRawBody($requestJson);
+        $this->laminasClient->setEncType('application/json');
+        $this->laminasClient->send();
+        return $this->laminasClient->getResponse();
     }
 
     /**
