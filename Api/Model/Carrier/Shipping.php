@@ -39,7 +39,7 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
     /**
      * @var \Laminas\Http\Client
      */
-    protected $laminasClient;
+    protected $client;
 
     /**
      * @var \Magento\Framework\App\ProductMetadataInterface
@@ -97,7 +97,7 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
         CurrencyFactory $currencyFactory,
         Data $directoryData,
         StockRegistryInterface $stockRegistry,
-        Client $laminasClient,
+        Client $client,
         StoreManagerInterface $storeManager,
         ProductMetadataInterface $productMetadata,
         WriterInterface $configWriter,
@@ -127,7 +127,7 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
         $this->rateResultFactory = $rateFactory;
         $this->rateMethodFactory = $rateMethodFactory;
         $this->productMetadata = $productMetadata;
-        $this->laminasClient = $laminasClient;
+        $this->client = $client;
         $this->storeManager = $storeManager;
         $this->configWriter = $configWriter;
         $this->class = new \ReflectionClass($this);
@@ -266,15 +266,15 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
      */
     protected function _callApi ($endPoint, $requestJson)
     {
-        $this->laminasClient->reset();
-        $this->laminasClient->setUri($endPoint);
-        $this->laminasClient->setMethod(\Laminas\Http\Request::METHOD_POST);
-        $this->laminasClient->setHeaders(['Content-Type' => 'application/json','Accept' => 'application/json']);
-        $this->laminasClient->setMethod('POST');
-        $this->laminasClient->setRawBody($requestJson);
-        $this->laminasClient->setEncType('application/json');
-        $this->laminasClient->send();
-        return $this->laminasClient->getResponse();
+        $this->client->reset();
+        $this->client->setUri($endPoint);
+        $this->client->setMethod(\Laminas\Http\Request::METHOD_POST);
+        $this->client->setHeaders(['Content-Type' => 'application/json','Accept' => 'application/json']);
+        $this->client->setMethod('POST');
+        $this->client->setRawBody($requestJson);
+        $this->client->setEncType('application/json');
+        $this->client->send();
+        return $this->client->getResponse();
     }
 
     /**
