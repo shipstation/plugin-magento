@@ -258,7 +258,28 @@ class Export
         $this->_getInternalNotes($order);
         $this->addXmlElement("StoreCode", "<![CDATA[{$order->getStore()->getCode()}]]>");
 
-        $this->_getGiftMessageInfo($order);
+        if ($order->getGiftMessageId())
+		{
+			$this->_getGiftMessageInfo($order);
+		} 
+		else 
+		{
+			$item = null;
+			foreach ($order->getItems() as $orderItem) 
+			{
+				if ($orderItem->getGiftMessageId()) 
+				{
+					$item = $orderItem;
+					break;
+				}
+			}
+	
+			if ($item) {
+				$this->_getGiftMessageInfo($item);
+			} else {
+				$this->_getGiftMessageInfo($order);
+			}
+		}
 
         $this->_xmlData .= "\t<Customer>\n";
         $this->addXmlElement("CustomerCode", "<![CDATA[{$order->getCustomerEmail()}]]>");
@@ -467,6 +488,10 @@ class Export
                 continue;
             }
 
+            if (empty($price) {
+                $price = '0.00';
+            }
+
             $this->_xmlData .= "\t<Item>\n";
 
             $this->addXmlElement("SKU", "<![CDATA[{$orderItem->getSku()}]]>");
@@ -477,7 +502,6 @@ class Export
             $this->addXmlElement("UnitPrice", "<![CDATA[{$price}]]>");
             $this->addXmlElement("Quantity", "<![CDATA[". (int)$orderItem->getQtyOrdered() ."]]>");
 
-            $this->_getGiftMessageInfo($orderItem);
             /*
              * Check for the attributes
              */
