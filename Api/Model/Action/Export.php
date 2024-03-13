@@ -488,7 +488,7 @@ class Export
                 continue;
             }
 
-            if (empty($price) {
+            if (empty($price)) {
                 $price = '0.00';
             }
 
