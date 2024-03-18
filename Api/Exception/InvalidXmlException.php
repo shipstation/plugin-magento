@@ -5,10 +5,10 @@ namespace Auctane\Api\Exception;
 use libXMLError;
 use Magento\Framework\Exception\LocalizedException;
 
-
 /**
  * Class InvalidXmlException
- * @package Auctane\Api\Exception
+ *
+ * Used to throw an exception when the input XML is invalid
  */
 class InvalidXmlException extends LocalizedException
 {

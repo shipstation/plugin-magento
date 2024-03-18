@@ -4,10 +4,10 @@ namespace Auctane\Api\Exception;
 
 use Magento\Framework\Exception\LocalizedException;
 
-
 /**
  * Class AuthenticationFailedException
- * @package Auctane\Api\Exception
+ *
+ * Used to throw an exception when the authentication fails
  */
 class AuthenticationFailedException extends LocalizedException
 {
