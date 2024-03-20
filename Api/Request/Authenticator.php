@@ -93,7 +93,7 @@ class Authenticator
         }
 
         // Use Magento user instead.
-        if (is_null($storeIds)) {
+        if ($storeIds === null) {
             // auth password tests where username is to avoid the pitfall of getting one value from params and one from headers.
             // They should both come from the same place.
             $authUser = $this->request->getParam('SS-UserName') ? $this->request->getParam('SS-UserName') : $this->request->getHeader('SS-UserName');
@@ -104,7 +104,7 @@ class Authenticator
             }
         }
 
-        if (is_null($storeIds)) {
+        if ($storeIds === null) {
             throw new AuthenticationFailedException();
         }
 

@@ -378,7 +378,7 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
                     'name' => $item->getname(),
                     'weight' => array('units' => $this->_scopeConfig->getValue('general/locale/weight_unit', $scopeTypeStore),
                                     'value' => $item->getWeight()),
-                    'price_per_item' => array( 'currency' =>$this->storeManager->getStore()->getCurrentCurrency()->getCode(), 'amount' => strval($item->getPrice())),
+                    'price_per_item' => array( 'currency' =>$this->storeManager->getStore()->getCurrentCurrency()->getCode(), 'amount' => (string)$item->getPrice()),
                     'quantity' => $item->getQty(),
                 );
                 array_push($shippingRequest['items'], $shipstation_item);
