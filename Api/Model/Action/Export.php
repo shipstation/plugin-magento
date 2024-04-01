@@ -22,6 +22,7 @@ use Magento\Sales\Model\Order\Address;
 use Magento\Sales\Model\ResourceModel\Order\Collection;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
 use Magento\Store\Model\ScopeInterface;
+use Psr\Log\LoggerInterface;
 
 
 /**
@@ -112,6 +113,9 @@ class Export
     /** @var RegionCollectionFactory */
     private $regionCollectionFactory;
 
+    /** @var LoggerInterface */
+    private $logger;
+
     /**
      * Export class constructor
      *
@@ -130,7 +134,8 @@ class Export
         Data $dataHelper,
         Message $giftMessage,
         WeightAdapter $weightAdapter,
-        RegionCollectionFactory $regionCollectionFactory
+        RegionCollectionFactory $regionCollectionFactory,
+        LoggerInterface $logger
     )
     {
         $this->_scopeConfig = $scopeConfig;
@@ -141,6 +146,7 @@ class Export
 
         $this->orderCollectionFactory = $orderCollectionFactory;
         $this->regionCollectionFactory = $regionCollectionFactory;
+        $this->logger = $logger;
 
         // @todo Initialisation in constructor is forbidden. Move to Config object.
         //Price export type
@@ -394,6 +400,27 @@ class Export
     }
 
     /**
+     * Limit the number of chars for a variable.
+     *
+     * @param string $property
+     * @param int $maxLength
+     * @return string
+     */
+    private function trimValue(string $property, int $maxLength): string
+    {   
+        if (strlen($property) > $maxLength) {
+
+            $this->logger->error('The value is too long (magento). Trimming '.$property.' to '.$maxLength.' characters from '.strlen($property));
+
+            return mb_substr($property ?? "", 0, $maxLength);
+        }
+        else {
+
+            return $property;
+        }
+    }
+
+    /**
      * Get the Shipping information of order.
      *
      * @param Address $shipping
@@ -411,7 +438,7 @@ class Export
         $this->addXmlElement("Company", "<![CDATA[{$shipping->getCompany()}]]>");
         $this->addXmlElement("Address1", "<![CDATA[{$shipping->getStreetLine(1)}]]>");
         $this->addXmlElement("Address2", "<![CDATA[{$shipping->getStreetLine(2)}]]>");
-        $this->addXmlElement("City", "<![CDATA[{$shipping->getCity()}]]>");
+        $this->addXmlElement("City", "<![CDATA[{$this->trimValue($shipping->getCity(), 100)}]]>");
         $this->addXmlElement("State", "<![CDATA[{$state}]]>");
         $this->addXmlElement("PostalCode", "<![CDATA[{$shipping->getPostcode()}]]>");
         $this->addXmlElement("Country", "<![CDATA[{$shipping->getCountryId()}]]>");
