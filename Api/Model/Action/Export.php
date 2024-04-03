@@ -402,21 +402,21 @@ class Export
     /**
      * Limit the number of chars for a variable.
      *
-     * @param string $property
+     * @param string $value
      * @param int $maxLength
      * @return string
      */
-    private function trimValue(string $property, int $maxLength): string
+    private function trimChars(string $value, int $maxLength): string
     {   
-        if (strlen($property) > $maxLength) {
+        if (strlen($value) > $maxLength) {
 
-            $this->logger->error('The value is too long (magento). Trimming '.$property.' to '.$maxLength.' characters from '.strlen($property));
+            $this->logger->error('The value is too long (magento). Trimming '.$value.' to '.$maxLength.' characters from '.strlen($value));
 
-            return mb_substr($property ?? "", 0, $maxLength);
+            return mb_substr($value ?? "", 0, $maxLength);
         }
         else {
 
-            return $property;
+            return $value;
         }
     }
 
@@ -436,13 +436,13 @@ class Export
         $this->_xmlData .= "\t<ShipTo>\n";
         $this->addXmlElement("Name", "<![CDATA[{$shipping->getFirstname()} {$shipping->getLastname()}]]>");
         $this->addXmlElement("Company", "<![CDATA[{$shipping->getCompany()}]]>");
-        $this->addXmlElement("Address1", "<![CDATA[{$shipping->getStreetLine(1)}]]>");
-        $this->addXmlElement("Address2", "<![CDATA[{$shipping->getStreetLine(2)}]]>");
-        $this->addXmlElement("City", "<![CDATA[{$this->trimValue($shipping->getCity(), 100)}]]>");
+        $this->addXmlElement("Address1", "<![CDATA[{$this->trimChars($shipping->getStreetLine(1), 200)}]]>");
+        $this->addXmlElement("Address2", "<![CDATA[{$this->trimChars($shipping->getStreetLine(2), 200)}]]>");
+        $this->addXmlElement("City", "<![CDATA[{$this->trimChars($shipping->getCity(), 100)}]]>");
         $this->addXmlElement("State", "<![CDATA[{$state}]]>");
         $this->addXmlElement("PostalCode", "<![CDATA[{$shipping->getPostcode()}]]>");
         $this->addXmlElement("Country", "<![CDATA[{$shipping->getCountryId()}]]>");
-        $this->addXmlElement("Phone", "<![CDATA[{$shipping->getTelephone()}]]>");
+        $this->addXmlElement("Phone", "<![CDATA[{$this->trimChars($shipping->getTelephone(), 50)}]]>");
         $this->_xmlData .= "\t</ShipTo>\n";
 
         return $this;
