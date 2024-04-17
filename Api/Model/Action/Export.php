@@ -410,7 +410,7 @@ class Export
     {   
         if (strlen($value) > $maxLength) {
 
-            $this->logger->error('The value is too long (magento). Trimming '.$value.' to '.$maxLength.' characters from '.strlen($value));
+            $this->logger->warning('The value is too long (magento). Trimming '.$value.' to '.$maxLength.' characters from '.strlen($value));
 
             return mb_substr($value ?? "", 0, $maxLength);
         }
@@ -433,16 +433,21 @@ class Export
             $state = $this->getRegion($shipping->getRegion())->getCode();
         }
 
+        $streetName1 = $this->trimChars($shipping->getStreetLine(1), 200);
+        $streetName2 = $this->trimChars($shipping->getStreetLine(2), 200);
+        $city = $this->trimChars($shipping->getCity(), 100);
+        $phone = $this->trimChars($shipping->getTelephone(), 50);
+
         $this->_xmlData .= "\t<ShipTo>\n";
         $this->addXmlElement("Name", "<![CDATA[{$shipping->getFirstname()} {$shipping->getLastname()}]]>");
         $this->addXmlElement("Company", "<![CDATA[{$shipping->getCompany()}]]>");
-        $this->addXmlElement("Address1", "<![CDATA[{$this->trimChars($shipping->getStreetLine(1), 200)}]]>");
-        $this->addXmlElement("Address2", "<![CDATA[{$this->trimChars($shipping->getStreetLine(2), 200)}]]>");
-        $this->addXmlElement("City", "<![CDATA[{$this->trimChars($shipping->getCity(), 100)}]]>");
+        $this->addXmlElement("Address1", "<![CDATA[{$streetName1}]]>");
+        $this->addXmlElement("Address2", "<![CDATA[{$streetName2}]]>");
+        $this->addXmlElement("City", "<![CDATA[{$city}]]>");
         $this->addXmlElement("State", "<![CDATA[{$state}]]>");
         $this->addXmlElement("PostalCode", "<![CDATA[{$shipping->getPostcode()}]]>");
         $this->addXmlElement("Country", "<![CDATA[{$shipping->getCountryId()}]]>");
-        $this->addXmlElement("Phone", "<![CDATA[{$this->trimChars($shipping->getTelephone(), 50)}]]>");
+        $this->addXmlElement("Phone", "<![CDATA[{$phone}]]>");
         $this->_xmlData .= "\t</ShipTo>\n";
 
         return $this;
