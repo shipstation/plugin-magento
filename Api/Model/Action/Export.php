@@ -406,9 +406,9 @@ class Export
      * @param int $maxLength
      * @return string
      */
-    private function trimChars(string $value, int $maxLength): string
+    private function trimChars(string $value = null, int $maxLength): string
     {   
-        if (strlen($value) > $maxLength) {
+        if (strlen($value ?? "") > $maxLength) {
 
             $this->logger->warning('The value is too long (magento). Trimming '.$value.' to '.$maxLength.' characters from '.strlen($value));
 
@@ -416,7 +416,7 @@ class Export
         }
         else {
 
-            return $value;
+            return $value ?? "";
         }
     }
 
