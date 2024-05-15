@@ -299,7 +299,7 @@ class Export
         $this->_xmlData .= "\t<Items>\n";
         $this->_orderItem($order); //call to the order items function
         //Get the order discounts
-        if ($this->_importDiscount && !is_null($order->getDiscountAmount()) && $order->getDiscountAmount() != '0.0000') {
+        if ($this->_importDiscount && $order->getDiscountAmount() !== NULL && $order->getDiscountAmount() != '0.0000') {
             $this->_getOrderDiscounts($order);
         }
 
@@ -355,7 +355,7 @@ class Export
             $this->addXmlElement("GiftMessage", "<![CDATA[From: {$gift->getSender()}\nTo: {$gift->getRecipient()}\nMessage: {$gift->getMessage()}]]>");
         }
 
-        $this->addXmlElement("Gift", !is_null($giftId) ? 'true' : 'false');
+        $this->addXmlElement("Gift", $giftId !== NULL ? 'true' : 'false');
 
         return $this;
     }
@@ -370,7 +370,7 @@ class Export
     {
         $billing = $order->getBillingAddress();
 
-        if (is_null($billing)) {
+        if ($billing === NULL) {
             return $this;
         }
 
