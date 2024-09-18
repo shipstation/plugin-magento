@@ -11,5 +11,8 @@
         <route id="api" frontName="api">
             <module name="Auctane_Api"/>
         </route>
+        <route id="inventory" frontName="inventory">
+            <module name="Auctane_Api"/>
+        </route>
     </router>
 </config>
