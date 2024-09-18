@@ -5,8 +5,7 @@
     <type name="Magento\Framework\Console\CommandList">
         <arguments>
             <argument name="commands" xsi:type="array">
-                <item name="debug_management" xsi:type="object">Auctane\Api\Console\Command\DebugManagementCommand
-                </item>
+                <item name="debug_management" xsi:type="object">Auctane\Api\Console\Command\DebugManagementCommand</item>
             </argument>
         </arguments>
     </type>
@@ -17,6 +16,9 @@
 
     <type name="Auctane\Api\Controller\Auctane\Index">
         <plugin name="auctane_index" type="Auctane\Api\Plugin\Controller\Auctane\IndexPlugin"/>
+        <arguments>
+            <argument name="logger" xsi:type="object">Auctane\Api\Model\ActionLogger</argument>
+        </arguments>
     </type>
 
     <virtualType name="Auctane\Api\Model\ActionLoggerHandler" type="Magento\Framework\Logger\Handler\Base">
@@ -34,13 +36,21 @@
         </arguments>
     </virtualType>
 
-    <type name="Auctane\Api\Controller\Auctane\Index">
+    <type name="Auctane\Api\Model\Version">
         <arguments>
-            <argument name="logger" xsi:type="object">Auctane\Api\Model\ActionLogger</argument>
+            <argument name="productMetadata" xsi:type="object">Magento\Framework\App\ProductMetadataInterface</argument>
+            <argument name="moduleList" xsi:type="object">Magento\Framework\Module\ModuleListInterface</argument>
+            <argument name="cacheTypeList" xsi:type="object">Magento\Framework\App\Cache\TypeListInterface</argument>
+            <argument name="resourceConnection" xsi:type="object">Magento\Framework\App\ResourceConnection</argument>
+            <argument name="state" xsi:type="object">Magento\Framework\App\State</argument>
         </arguments>
     </type>
 
     <preference for="Auctane\Api\Api\ConfigureShipstationInterface" type="Auctane\Api\Model\ConfigureShipstation"/>
     <preference for="Auctane\Api\Api\CheckInterface" type="Auctane\Api\Model\Check"/>
+    <preference for="Auctane\Api\Api\VersionInterface" type="Auctane\Api\Model\Version"/>
+    <preference for="Auctane\Api\Api\Data\VersionResponseInterface" type="Auctane\Api\Model\VersionResponse"/>
+
+
 
 </config>

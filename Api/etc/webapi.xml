@@ -14,5 +14,10 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
-
+    <route url="/V1/auctane/version" method="GET">
+        <service class="Auctane\Api\Api\VersionInterface" method="getVersion"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 </routes>
