@@ -78,10 +78,11 @@ class Fetch implements HttpGetActionInterface
             $productInventory = [];
 
             foreach ($sourceItems as $sourceItem) {
+                $in_stock = filter_var($sourceItem->getStatus(), FILTER_VALIDATE_BOOLEAN);
                 $productInventory[] = [
                     'source_code' => $sourceItem->getSourceCode(),
                     'quantity' => $sourceItem->getQuantity(),
-                    'status' => $sourceItem->getStatus(),
+                    'in_stock' => $in_stock,
                 ];
             }
 
