@@ -21,7 +21,19 @@
         </arguments>
     </type>
 
-    <type name="Auctane\Api\Controller\Inventory\Index">
+    <type name="Auctane\Api\Controller\Inventory\Fetch">
+        <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="10" />
+    </type>
+
+    <type name="Auctane\Api\Controller\Inventory\Push">
+        <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="10" />
+    </type>
+
+    <type name="Auctane\Api\Controller\Diagnostics\Version">
+        <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="10" />
+    </type>
+
+    <type name="Auctane\Api\Controller\Diagnostics\Live">
         <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="10" />
     </type>
 
@@ -40,20 +52,8 @@
         </arguments>
     </virtualType>
 
-    <type name="Auctane\Api\Model\Version">
-        <arguments>
-            <argument name="productMetadata" xsi:type="object">Magento\Framework\App\ProductMetadataInterface</argument>
-            <argument name="moduleList" xsi:type="object">Magento\Framework\Module\ModuleListInterface</argument>
-            <argument name="cacheTypeList" xsi:type="object">Magento\Framework\App\Cache\TypeListInterface</argument>
-            <argument name="resourceConnection" xsi:type="object">Magento\Framework\App\ResourceConnection</argument>
-            <argument name="state" xsi:type="object">Magento\Framework\App\State</argument>
-        </arguments>
-    </type>
-
     <preference for="Auctane\Api\Api\ConfigureShipstationInterface" type="Auctane\Api\Model\ConfigureShipstation"/>
     <preference for="Auctane\Api\Api\CheckInterface" type="Auctane\Api\Model\Check"/>
-    <preference for="Auctane\Api\Api\VersionInterface" type="Auctane\Api\Model\Version"/>
-    <preference for="Auctane\Api\Api\Data\VersionResponseInterface" type="Auctane\Api\Model\VersionResponse"/>
 
 
 
