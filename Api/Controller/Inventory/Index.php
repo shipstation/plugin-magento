@@ -15,7 +15,6 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Request\Http;
 use Magento\InventoryApi\Api\Data\SourceItemInterface;
-use Magento\Framework\App\ObjectManager;
 
 class Index implements HttpGetActionInterface, HttpPostActionInterface
 {
@@ -183,7 +182,9 @@ class Index implements HttpGetActionInterface, HttpPostActionInterface
         $sku = $this->request->getParam('sku');
         $source_code = $this->request->getParam('source_code');
         $quantity = (int)$this->request->getParam('quantity');
-        $in_stock = (bool)$this->request->getParam('in_stock');
+        $in_stock = $this->request->getParam('in_stock');
+
+        $in_stock_bool = filter_var($in_stock, FILTER_VALIDATE_BOOLEAN);
 
         if (!$sku || !$source_code || !$quantity) {
             throw new BadRequestException('The sku, source_code, and quantity are required.');
@@ -193,13 +194,19 @@ class Index implements HttpGetActionInterface, HttpPostActionInterface
         $sourceItem->setSku($sku);
         $sourceItem->setSourceCode($source_code);
         $sourceItem->setQuantity($quantity);
-        $sourceItem->setStatus($in_stock ? 1 : 0); // Default to "In Stock"
+        $sourceItem->setStatus($in_stock_bool ? 1 : 0);
         $sourceItemsToUpdate[] = $sourceItem;
         $this->sourceItemsSave->execute($sourceItemsToUpdate);
 
         return [
             'status' => 'success',
             'message' => 'Inventory updated successfully.',
+            'inventory' => [
+                'sku' => $sku,
+                'source_code' => $source_code,
+                'quantity' => $quantity,
+                'in_stock' => $in_stock_bool,
+            ]
         ];
     }
 }
