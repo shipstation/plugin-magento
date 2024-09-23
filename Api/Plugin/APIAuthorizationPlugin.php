@@ -1,48 +1,61 @@
 <?php
 namespace Auctane\Api\Plugin;
 
-use Auctane\Api\Exception\AuthenticationFailedException;
 use Auctane\Api\Exception\AuthorizationException;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Request\Http;
-use Magento\Framework\Oauth\TokenProviderInterface;
+use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreManagerInterface;
 
 class APIAuthorizationPlugin
 {
-    /** @var TokenProviderInterface */
-    private TokenProviderInterface $tokenProvider;
     /** @var Http */
     private Http $request;
-
+    /** @var ScopeConfigInterface */
+    private ScopeConfigInterface $scopeConfig;
+    /** @var StoreManagerInterface  */
+    private StoreManagerInterface $storeManager;
 
     /**
      * Authenticator constructor.
      *
-     * @param TokenProviderInterface $tokenProvider
      * @param Http $request
+     * @param ScopeConfigInterface $scopeConfig
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
-        TokenProviderInterface $tokenProvider,
-        Http $request
+        Http $request,
+        ScopeConfigInterface $scopeConfig,
+        StoreManagerInterface $storeManager
     ) {
-        $this->tokenProvider = $tokenProvider;
         $this->request = $request;
+        $this->scopeConfig = $scopeConfig;
+        $this->storeManager = $storeManager;
     }
 
     /**
      * Validates that the user can make api calls
      *
-     * @throws AuthenticationFailedException
+     * @throws AuthorizationException
      */
     public function aroundExecute($subject, callable $proceed)
     {
-        $accessToken = $this->request->getHeader('Authorization');
-        $parts = explode(' ', $accessToken);
+        $authorizationHeader = $this->request->getHeader('Authorization');
+        $accessToken = explode(' ', $authorizationHeader)[1];
 
-        try {
-            $this->tokenProvider->validateAccessToken($parts[1]);
-        } catch (\Exception $e) {
-            throw new AuthorizationException('Failed to authorize token ' . $parts[1] . ' message ' . $e->getMessage());
+        $validCredentials = false;
+        foreach ($this->storeManager->getStores() as $store) {
+            $storeApiKey = $this->scopeConfig->getValue(
+                'shipstation_general/shipstation/ship_api_key',
+                ScopeInterface::SCOPE_STORE,
+                $store->getId()
+            );
+            $validCredentials = $accessToken === $storeApiKey || $validCredentials;
         }
-        $proceed();
+
+        if ($validCredentials === false) {
+            throw new AuthorizationException();
+        }
+        return $proceed();
     }
 }
