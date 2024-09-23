@@ -21,6 +21,10 @@
         </arguments>
     </type>
 
+    <type name="Auctane\Api\Controller\Inventory\Index">
+        <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="10" />
+    </type>
+
     <virtualType name="Auctane\Api\Model\ActionLoggerHandler" type="Magento\Framework\Logger\Handler\Base">
         <arguments>
             <argument name="fileName" xsi:type="string"><![CDATA[var/log/auctane_api.log]]></argument>
