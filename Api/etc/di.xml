@@ -22,19 +22,20 @@
     </type>
 
     <type name="Auctane\Api\Controller\Inventory\Fetch">
-        <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="10" />
+        <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="1" />
     </type>
 
     <type name="Auctane\Api\Controller\Inventory\Push">
-        <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="10" />
+        <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="1" />
     </type>
 
     <type name="Auctane\Api\Controller\Diagnostics\Version">
-        <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="10" />
+        <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="1" />
+        <plugin name="authorization" type="Auctane\Api\Plugin\APIAuthorizationPlugin" sortOrder="2" />
     </type>
 
     <type name="Auctane\Api\Controller\Diagnostics\Live">
-        <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="10" />
+        <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="1" />
     </type>
 
     <virtualType name="Auctane\Api\Model\ActionLoggerHandler" type="Magento\Framework\Logger\Handler\Base">
