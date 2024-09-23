@@ -3,6 +3,7 @@
 namespace Auctane\Api\Controller\Inventory;
 
 use Auctane\Api\Exception\BadRequestException;
+use Auctane\Api\Exception\NotFoundException;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\Exception\CouldNotSaveException;
@@ -67,16 +68,17 @@ class Index implements HttpGetActionInterface, HttpPostActionInterface
      * @throws CouldNotSaveException
      * @throws BadRequestException
      * @throws InputException
+     * @throws NotFoundException
      */
     public function execute()
     {
         // Check the HTTP method using getMethod()
-        $method = $this->request->getMethod();
+        $method = $this->request->getParam('action');
 
-        if ($method == 'GET') {
-            return $this->handleGetRequest();
-        } elseif ($method == 'POST') {
-            return $this->handlePostRequest();
+        if ($method == 'fetch') {
+            return $this->fetchInventory();
+        } elseif ($method == 'push') {
+            return $this->pushInventory();
         } else {
             throw new BadRequestException($method . " is not a supported request method");
         }
@@ -88,7 +90,7 @@ class Index implements HttpGetActionInterface, HttpPostActionInterface
      * @return array
      * @throws BadRequestException
      */
-    protected function handleGetRequest(): array
+    protected function fetchInventory(): array
     {
         // Get paging parameters from the query string
         $page = (int)$this->request->getParam('page', 1); // Default to page 1
@@ -144,36 +146,55 @@ class Index implements HttpGetActionInterface, HttpPostActionInterface
     }
 
     /**
+     * This attempts to return an inventory item to be updated
+     *
+     * @param string $sku
+     * @param string $source_code
+     * @return SourceItemInterface
+     * @throws NotFoundException
+     */
+    private function getInventoryItem(string $sku, string $source_code): SourceItemInterface
+    {
+        $inventoryExists = null;
+        $existingItems = $this->getSourceItemsBySku->execute($sku);
+        foreach ($existingItems as $existingItem) {
+            if ($existingItem->getSourceCode() == $source_code) {
+                $inventoryExists = $existingItem;
+                break;
+            }
+        }
+        if (!$inventoryExists) {
+            throw new NotFoundException('Inventory not found for sku ' . $sku . ' and source code ' . $source_code);
+        }
+        return $inventoryExists;
+    }
+
+    /**
      *  Handles updating the inventory records
      *
      * @throws ValidationException
      * @throws CouldNotSaveException
      * @throws BadRequestException
      * @throws InputException
+     * @throws NotFoundException
      */
-    protected function handlePostRequest(): array
+    protected function pushInventory(): array
     {
-        $postData = $this->request->getContent(); // Get the raw POST data
-        $data = json_decode($postData, true); // Decode JSON to array
+        $sku = $this->request->getParam('sku');
+        $source_code = $this->request->getParam('source_code');
+        $quantity = (int)$this->request->getParam('quantity');
+        $in_stock = (bool)$this->request->getParam('in_stock');
 
-        if (!isset($data['inventory']) || !is_array($data['inventory'])) {
-            throw new BadRequestException('inventory not set to an array of inventory items');
+        if (!$sku || !$source_code || !$quantity) {
+            throw new BadRequestException('The sku, source_code, and quantity are required.');
         }
 
-        $sourceItemsToUpdate = [];
-        foreach ($data['inventory'] as $inventoryUpdate) {
-            if (isset($inventoryUpdate['sku'], $inventoryUpdate['source_code'], $inventoryUpdate['quantity'])) {
-                // Create a source item using ObjectManager or SourceItemsSaveInterface
-                $sourceItem = ObjectManager::getInstance()->create(SourceItemInterface::class);
-                $sourceItem->setSku($inventoryUpdate['sku']);
-                $sourceItem->setSourceCode($inventoryUpdate['source_code']);
-                $sourceItem->setQuantity($inventoryUpdate['quantity']);
-                $sourceItem->setStatus($inventoryUpdate['status'] ?? 1); // Default to "In Stock"
-                $sourceItemsToUpdate[] = $sourceItem;
-            }
-        }
-
-        // Save updated source items
+        $sourceItem = $this->getInventoryItem($sku, $source_code);
+        $sourceItem->setSku($sku);
+        $sourceItem->setSourceCode($source_code);
+        $sourceItem->setQuantity($quantity);
+        $sourceItem->setStatus($in_stock ? 1 : 0); // Default to "In Stock"
+        $sourceItemsToUpdate[] = $sourceItem;
         $this->sourceItemsSave->execute($sourceItemsToUpdate);
 
         return [
