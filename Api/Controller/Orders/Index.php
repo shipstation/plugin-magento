@@ -1,9 +1,11 @@
 <?php
 namespace Auctane\Api\Controller\Orders;
 
+use Exception;
 use Magento\Catalog\Helper\Image;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\Action\Context;
+use Magento\GiftMessage\Helper\Message;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -13,6 +15,7 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\App\RequestInterface;
+use Magento\Store\Model\Information;
 
 class Index implements HttpGetActionInterface
 {
@@ -32,6 +35,8 @@ class Index implements HttpGetActionInterface
     protected RequestInterface $request;
     /** @var Image */
     protected Image $imageHelper;
+    /** @var Message  */
+    protected Message $giftMessageProvider;
 
     /**
      * @param Context $context
@@ -43,6 +48,7 @@ class Index implements HttpGetActionInterface
      * @param SortOrderBuilder $sortOrderBuilder
      * @param RequestInterface $request
      * @param Image $imageHelper
+     * @param Message $giftMessageProvider
      */
     public function __construct(
         Context $context,
@@ -54,6 +60,7 @@ class Index implements HttpGetActionInterface
         SortOrderBuilder $sortOrderBuilder,
         RequestInterface $request,
         Image $imageHelper,
+        Message $giftMessageProvider
     ) {
         $this->orderRepository = $orderRepository;
         $this->shipmentRepository = $shipmentRepository;
@@ -63,6 +70,7 @@ class Index implements HttpGetActionInterface
         $this->sortOrderBuilder = $sortOrderBuilder;
         $this->request = $request;
         $this->imageHelper = $imageHelper;
+        $this->giftMessageProvider = $giftMessageProvider;
     }
 
     /**
@@ -104,18 +112,35 @@ class Index implements HttpGetActionInterface
         $orderData = [];
 
         foreach ($orders as $order) {
+            $order->getShippingInvoiced();
+            $order->getDiscountInvoiced();
+            $order->getTaxInvoiced();
+            $order->getTotalInvoiced();
             $orderData[] = [
                 'order_number' => $order->getIncrementId(),
                 'status' => $order->getStatus(),
                 'paid_date' => $order->getCreatedAt(),
                 'bill_to' => $order->getBillingAddress()->getData(),
                 'ship_to' => $order->getShippingAddress()->getData(),
+                'store' => $this->getStoreDetails($order),
+                'buyer' => [
+                    'id' => $order->getCustomerId(),
+                    'name' => $order->getCustomerName(),
+                    'email' => $order->getCustomerEmail(),
+                    'note' => $order->getCustomerNote(),
+                    'tax_vat' => $order->getCustomerTaxvat(),
+                ],
+                // Leaving this here to allow others to enter their own mappings to
+                // SEC shipping_preferences
+                // https://connect.shipengine.com/orders/reference/operation/OrderSource_SalesOrdersExport/#!c=200&path=sales_orders/requested_fulfillments/shipping_preferences&t=response
+                'shipping_preferences' => [],
                 'payment' => $order->getPayment()->getMethod(),
                 'created_date_time' => $order->getCreatedAt(),
                 'modified_date_time' => $order->getUpdatedAt(),
                 'shipping_method' => $order->getShippingMethod(),
                 'shipping_description' => $order->getShippingDescription(),
                 'items' => $this->getOrderItems($order),
+                'gift_messages' => $this->getGiftOrderMessage($order),
             ];
         }
 
@@ -131,7 +156,33 @@ class Index implements HttpGetActionInterface
             ]
         ];
     }
-    
+
+    /**
+     * This method will provide details about the store
+     *
+     * @param OrderInterface $order
+     * @return array
+     */
+    private function getStoreDetails(OrderInterface $order): array
+    {
+        $store = $order->getStore();
+        $store->getCurrentCurrencyCode();
+        $store->getFormattedAddress();
+        return [
+            'name' => $store->getName(),
+            'currency_code' => $store->getCurrentCurrencyCode(),
+            'address' => [
+                'name' => $store->getConfig(Information::XML_PATH_STORE_INFO_NAME),
+                'street_line1' => $store->getConfig(Information::XML_PATH_STORE_INFO_STREET_LINE1),
+                'street_line2' => $store->getConfig(Information::XML_PATH_STORE_INFO_STREET_LINE2),
+                'city' => $store->getConfig(Information::XML_PATH_STORE_INFO_CITY),
+                'region' => $store->getConfig(Information::XML_PATH_STORE_INFO_REGION_CODE),
+                'postcode' => $store->getConfig(Information::XML_PATH_STORE_INFO_POSTCODE),
+                'country' => $store->getConfig(Information::XML_PATH_STORE_INFO_COUNTRY_CODE)
+            ]
+        ];
+    }
+
     /**
      *  Returns product details for an item
      *
@@ -155,7 +206,7 @@ class Index implements HttpGetActionInterface
                 'thumb_nail' => $thumbnail,
                 'large_image' => $largeImage,
             ];
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             return ['error' => $exception->getMessage()];
         }
     }
@@ -186,5 +237,33 @@ class Index implements HttpGetActionInterface
             ];
         }
         return $items;
+    }
+
+    /**
+     * This method should attempt to get the gift message form the order or the order items
+     *
+     * @param OrderInterface $order
+     * @return array
+     */
+    private function getGiftOrderMessage(OrderInterface $order): array
+    {
+        $messages = [];
+        $giftId = $order->getGiftMessageId();
+        if ($giftId) {
+            $messages[] = [
+                'id' => $giftId,
+                'message' => $this->giftMessageProvider->getGiftMessage($giftId)->getMessage(),
+            ];
+        }
+        foreach ($order->getItems() as $item) {
+            $giftId = $item->getGiftMessageId();
+            if ($giftId) {
+                $messages[] = [
+                    'id' => $giftId,
+                    'message' => $this->giftMessageProvider->getGiftMessage($giftId)->getMessage()
+                ];
+            }
+        }
+        return $messages;
     }
 }
