@@ -34,6 +34,11 @@
         <plugin name="authorization" type="Auctane\Api\Plugin\APIAuthorizationPlugin" sortOrder="10" />
     </type>
 
+    <type name="Auctane\Api\Controller\Orders\Index">
+        <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="9" />
+        <plugin name="authorization" type="Auctane\Api\Plugin\APIAuthorizationPlugin" sortOrder="10" />
+    </type>
+
     <type name="Auctane\Api\Controller\Diagnostics\Live">
         <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="1" />
     </type>
