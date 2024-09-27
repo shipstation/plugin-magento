@@ -2,6 +2,7 @@
 
 namespace Auctane\Api\Controller\Inventory;
 
+use Auctane\Api\Controller\BaseController;
 use Auctane\Api\Exception\BadRequestException;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\InventoryApi\Api\GetSourceItemsBySkuInterface;
@@ -9,7 +10,7 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Request\Http;
 
-class Fetch implements HttpGetActionInterface
+class Fetch extends BaseController implements HttpGetActionInterface
 {
     /**
      * @var GetSourceItemsBySkuInterface

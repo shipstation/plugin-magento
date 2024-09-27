@@ -1,6 +1,7 @@
 <?php
 namespace Auctane\Api\Controller\Inventory;
 
+use Auctane\Api\Controller\BaseController;
 use Auctane\Api\Exception\BadRequestException;
 use Auctane\Api\Exception\NotFoundException;
 use Magento\Catalog\Api\ProductRepositoryInterface;
@@ -14,7 +15,7 @@ use Magento\InventoryApi\Api\Data\SourceItemInterface;
 use Magento\InventoryApi\Api\GetSourceItemsBySkuInterface;
 use Magento\InventoryApi\Api\SourceItemsSaveInterface;
 
-class Push implements HttpPostActionInterface {
+class Push extends BaseController implements HttpPostActionInterface {
 
     /**
      * @var GetSourceItemsBySkuInterface

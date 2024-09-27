@@ -17,7 +17,7 @@
         <route id="diagnostics" frontName="diagnostics">
             <module name="Auctane_Api"/>
         </route>
-        <route id="orders" frontName="orders">
+        <route id="sales_orders_export" frontName="sales_orders_export">
             <module name="Auctane_Api"/>
         </route>
     </router>
