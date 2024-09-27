@@ -15,7 +15,6 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Store\Model\Information;
-use Magento\Framework\App\Request\Http;
 
 class Index extends BaseController implements HttpPostActionInterface
 {
@@ -25,8 +24,6 @@ class Index extends BaseController implements HttpPostActionInterface
     protected ShipmentRepositoryInterface $shipmentRepository;
     /** @var ProductRepositoryInterface */
     protected ProductRepositoryInterface $productRepository;
-    /** @var JsonFactory */
-    protected JsonFactory $resultJsonFactory;
     /** @var SearchCriteriaBuilder */
     protected SearchCriteriaBuilder $searchCriteriaBuilder;
     /** @var SortOrderBuilder */
@@ -37,8 +34,6 @@ class Index extends BaseController implements HttpPostActionInterface
     protected Message $giftMessageProvider;
 
     public function __construct(
-        JsonFactory $resultJsonFactory,
-        Http $request,
         OrderRepositoryInterface $orderRepository,
         ShipmentRepositoryInterface $shipmentRepository,
         ProductRepositoryInterface $productRepository,
@@ -47,11 +42,10 @@ class Index extends BaseController implements HttpPostActionInterface
         Image $imageHelper,
         Message $giftMessageProvider
     ) {
-        parent::__construct($resultJsonFactory, $request);
+        parent::__construct();
         $this->orderRepository = $orderRepository;
         $this->shipmentRepository = $shipmentRepository;
         $this->productRepository = $productRepository;
-        $this->resultJsonFactory = $resultJsonFactory;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->sortOrderBuilder = $sortOrderBuilder;
         $this->imageHelper = $imageHelper;

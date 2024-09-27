@@ -5,7 +5,6 @@ namespace Auctane\Api\Controller\Inventory;
 use Auctane\Api\Controller\BaseController;
 use Auctane\Api\Exception\BadRequestException;
 use Magento\Framework\App\Action\HttpGetActionInterface;
-use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\InventoryApi\Api\GetSourceItemsBySkuInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -31,25 +30,20 @@ class Fetch extends BaseController implements HttpGetActionInterface
     protected Http $request;
 
     /**
-     * @param JsonFactory $jsonFactory
-     * @param Http $request
      * @param GetSourceItemsBySkuInterface $getSourceItemsBySku
      * @param ProductRepositoryInterface $productRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      *
      */
     public function __construct(
-        JsonFactory                  $jsonFactory,
-        Http                         $request,
         GetSourceItemsBySkuInterface $getSourceItemsBySku,
         ProductRepositoryInterface   $productRepository,
         SearchCriteriaBuilder        $searchCriteriaBuilder,
     ) {
-        parent::__construct($jsonFactory, $request);
+        parent::__construct();
         $this->getSourceItemsBySku = $getSourceItemsBySku;
         $this->productRepository = $productRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->request = $request;
     }
 
     /**

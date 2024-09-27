@@ -5,32 +5,21 @@ use Auctane\Api\Api\HttpActionInterface;
 use Auctane\Api\Exception\ApiException;
 use Auctane\Api\Exception\AuthorizationException;
 use Magento\Framework\App\CsrfAwareActionInterface;
-use Magento\Framework\App\Request\Http;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Json;
-use Magento\Framework\Controller\Result\JsonFactory;
 
 abstract class BaseController implements HttpActionInterface, CsrfAwareActionInterface
 {
-
-    /** @var JsonFactory */
-    protected JsonFactory $jsonFactory;
-    /** @var Http  */
-    protected Http $request;
+    use BaseControllerTrait;
 
     /**
      * The base controller.
      *
-     * @param JsonFactory $jsonFactory
-     * @param Http $request
      */
-    public function __construct(
-        JsonFactory $jsonFactory,
-        Http $request
-    ) {
-        $this->jsonFactory = $jsonFactory;
-        $this->request = $request;
+    public function __construct()
+    {
+        $this->initializeBaseControllerDependencies();
     }
 
     /**
@@ -41,7 +30,7 @@ abstract class BaseController implements HttpActionInterface, CsrfAwareActionInt
     public function execute(): Json
     {
         try {
-            if (!$this->callIsAuthorized()) {
+            if (!$this->getIsAuthorized()) {
                 throw new AuthorizationException();
             }
             $response = $this->executeAction();
@@ -72,7 +61,7 @@ abstract class BaseController implements HttpActionInterface, CsrfAwareActionInt
      *
      * @returns bool
      */
-    protected function callIsAuthorized():bool
+    protected function getIsAuthorized():bool
     {
         return true;
     }

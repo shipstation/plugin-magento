@@ -7,8 +7,6 @@ use Auctane\Api\Exception\NotFoundException;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Action\HttpPostActionInterface;
-use Magento\Framework\App\Request\Http;
-use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Validation\ValidationException;
@@ -37,22 +35,18 @@ class Push extends BaseController implements HttpPostActionInterface
     protected SourceItemsSaveInterface $sourceItemsSave;
 
     /**
-     * @param JsonFactory $jsonFactory
-     * @param Http $request
      * @param GetSourceItemsBySkuInterface $getSourceItemsBySku
      * @param ProductRepositoryInterface $productRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param SourceItemsSaveInterface $sourceItemsSave
      */
     public function __construct(
-        JsonFactory $jsonFactory,
-        Http $request,
         GetSourceItemsBySkuInterface $getSourceItemsBySku,
         ProductRepositoryInterface $productRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         SourceItemsSaveInterface $sourceItemsSave
     ) {
-        parent::__construct($jsonFactory, $request);
+        parent::__construct();
         $this->getSourceItemsBySku = $getSourceItemsBySku;
         $this->productRepository = $productRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;

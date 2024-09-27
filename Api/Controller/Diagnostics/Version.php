@@ -4,8 +4,6 @@ namespace Auctane\Api\Controller\Diagnostics;
 use Auctane\Api\Controller\BaseController;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\ProductMetadataInterface;
-use Magento\Framework\App\Request\Http;
-use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Module\ModuleListInterface;
 
 class Version extends BaseController implements HttpGetActionInterface
@@ -21,12 +19,10 @@ class Version extends BaseController implements HttpGetActionInterface
     private $moduleList;
 
     public function __construct(
-        JsonFactory $jsonFactory,
-        Http $request,
         ProductMetadataInterface $productMetadata,
         ModuleListInterface $moduleList,
     ) {
-        parent::__construct($jsonFactory, $request);
+        parent::__construct();
         $this->productMetadata = $productMetadata;
         $this->moduleList = $moduleList;
     }
