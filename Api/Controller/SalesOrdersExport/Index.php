@@ -4,7 +4,6 @@ namespace Auctane\Api\Controller\SalesOrdersExport;
 use Auctane\Api\Controller\BaseController;
 use Exception;
 use Magento\Catalog\Helper\Image;
-use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\GiftMessage\Helper\Message;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -15,8 +14,8 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Framework\Controller\Result\JsonFactory;
-use Magento\Framework\App\RequestInterface;
 use Magento\Store\Model\Information;
+use Magento\Framework\App\Request\Http;
 
 class Index extends BaseController implements HttpPostActionInterface
 {
@@ -32,37 +31,34 @@ class Index extends BaseController implements HttpPostActionInterface
     protected SearchCriteriaBuilder $searchCriteriaBuilder;
     /** @var SortOrderBuilder */
     protected SortOrderBuilder $sortOrderBuilder;
-    /** @var RequestInterface */
-    protected RequestInterface $request;
     /** @var Image */
     protected Image $imageHelper;
     /** @var Message */
     protected Message $giftMessageProvider;
 
     public function __construct(
-        Context $context,
+        JsonFactory $resultJsonFactory,
+        Http $request,
         OrderRepositoryInterface $orderRepository,
         ShipmentRepositoryInterface $shipmentRepository,
         ProductRepositoryInterface $productRepository,
-        JsonFactory $resultJsonFactory,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         SortOrderBuilder $sortOrderBuilder,
-        RequestInterface $request,
         Image $imageHelper,
         Message $giftMessageProvider
     ) {
+        parent::__construct($resultJsonFactory, $request);
         $this->orderRepository = $orderRepository;
         $this->shipmentRepository = $shipmentRepository;
         $this->productRepository = $productRepository;
         $this->resultJsonFactory = $resultJsonFactory;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->sortOrderBuilder = $sortOrderBuilder;
-        $this->request = $request;
         $this->imageHelper = $imageHelper;
         $this->giftMessageProvider = $giftMessageProvider;
     }
 
-    public function execute()
+    public function executeAction(): array
     {
         // Parse the request body
         $requestBody = json_decode($this->request->getContent(), true);
@@ -95,8 +91,6 @@ class Index extends BaseController implements HttpPostActionInterface
                 'order_number' => $order->getIncrementId(),
                 'status' => $order->getStatus(),
                 'paid_date' => $order->getCreatedAt(),
-                'fulfilled_date' => $order->getUpdatedAt(),
-                'original_order_source' => $this->getOriginalOrderSource($order),
                 'requested_fulfillments' => $this->getRequestedFulfillments($order),
                 'buyer' => $this->getBuyerDetails($order),
                 'bill_to' => $this->getAddressDetails($order->getBillingAddress()),
@@ -106,10 +100,8 @@ class Index extends BaseController implements HttpPostActionInterface
                 'ship_from' => $this->getStoreDetails($order),
                 'order_url' => $this->getOrderUrl($order),
                 'notes' => $this->getOrderNotes($order),
-                'integration_context' => 'string', // Placeholder
                 'created_date_time' => $order->getCreatedAt(),
                 'modified_date_time' => $order->getUpdatedAt(),
-                'fulfillment_channel' => 'string' // Placeholder
             ];
         }
 
@@ -130,26 +122,11 @@ class Index extends BaseController implements HttpPostActionInterface
             'phone' => $store->getConfig(Information::XML_PATH_STORE_INFO_PHONE),
             'address_line_1' => $store->getConfig(Information::XML_PATH_STORE_INFO_STREET_LINE1),
             'address_line_2' => $store->getConfig(Information::XML_PATH_STORE_INFO_STREET_LINE2),
-            'address_line_3' => '', // Placeholder, modify if you have an extra line in the address
             'city' => $store->getConfig(Information::XML_PATH_STORE_INFO_CITY),
             'state_province' => $store->getConfig(Information::XML_PATH_STORE_INFO_REGION_CODE),
             'postal_code' => $store->getConfig(Information::XML_PATH_STORE_INFO_POSTCODE),
             'country_code' => $store->getConfig(Information::XML_PATH_STORE_INFO_COUNTRY_CODE),
-            'pickup_location' => [
-                'carrier_id' => 'string', // Placeholder
-                'relay_id' => 'string' // Placeholder
-            ]
-        ];
-    }
-
-
-    // Helper methods
-    private function getOriginalOrderSource(OrderInterface $order): array
-    {
-        return [
-            'source_id' => $order->getStoreId(),
-            'marketplace_code' => 'string', // Placeholder
-            'order_id' => $order->getIncrementId()
+            'pickup_location' => []
         ];
     }
 

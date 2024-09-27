@@ -21,28 +21,6 @@
         </arguments>
     </type>
 
-    <type name="Auctane\Api\Controller\Inventory\Fetch">
-        <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="1" />
-    </type>
-
-    <type name="Auctane\Api\Controller\Inventory\Push">
-        <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="1" />
-    </type>
-
-    <type name="Auctane\Api\Controller\Diagnostics\Version">
-        <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="9" />
-        <plugin name="authorization" type="Auctane\Api\Plugin\APIAuthorizationPlugin" sortOrder="10" />
-    </type>
-
-    <type name="Auctane\Api\Controller\SalesOrdersExport\Index">
-        <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="9" />
-        <plugin name="authorization" type="Auctane\Api\Plugin\APIAuthorizationPlugin" sortOrder="10" />
-    </type>
-
-    <type name="Auctane\Api\Controller\Diagnostics\Live">
-        <plugin name="response_handler" type="Auctane\Api\Plugin\ApiResponsePlugin" sortOrder="1" />
-    </type>
-
     <virtualType name="Auctane\Api\Model\ActionLoggerHandler" type="Magento\Framework\Logger\Handler\Base">
         <arguments>
             <argument name="fileName" xsi:type="string"><![CDATA[var/log/auctane_api.log]]></argument>
@@ -60,7 +38,7 @@
 
     <preference for="Auctane\Api\Api\ConfigureShipstationInterface" type="Auctane\Api\Model\ConfigureShipstation"/>
     <preference for="Auctane\Api\Api\CheckInterface" type="Auctane\Api\Model\Check"/>
-
+    <preference for="Auctane\Api\Api\AuthorizationInterface" type="Auctane\Api\Model\Authorization"/>
 
 
 </config>

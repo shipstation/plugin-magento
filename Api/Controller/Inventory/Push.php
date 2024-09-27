@@ -8,6 +8,7 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\Request\Http;
+use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Validation\ValidationException;
@@ -15,7 +16,8 @@ use Magento\InventoryApi\Api\Data\SourceItemInterface;
 use Magento\InventoryApi\Api\GetSourceItemsBySkuInterface;
 use Magento\InventoryApi\Api\SourceItemsSaveInterface;
 
-class Push extends BaseController implements HttpPostActionInterface {
+class Push extends BaseController implements HttpPostActionInterface
+{
 
     /**
      * @var GetSourceItemsBySkuInterface
@@ -30,32 +32,30 @@ class Push extends BaseController implements HttpPostActionInterface {
      */
     protected SearchCriteriaBuilder $searchCriteriaBuilder;
     /**
-     * @var Http
-     */
-    protected Http $request;
-    /**
      * @var SourceItemsSaveInterface
      */
     protected SourceItemsSaveInterface $sourceItemsSave;
 
     /**
+     * @param JsonFactory $jsonFactory
+     * @param Http $request
      * @param GetSourceItemsBySkuInterface $getSourceItemsBySku
      * @param ProductRepositoryInterface $productRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
-     * @param Http $request
      * @param SourceItemsSaveInterface $sourceItemsSave
      */
     public function __construct(
+        JsonFactory $jsonFactory,
+        Http $request,
         GetSourceItemsBySkuInterface $getSourceItemsBySku,
         ProductRepositoryInterface $productRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        Http $request, // Inject the correct Request class
         SourceItemsSaveInterface $sourceItemsSave
     ) {
+        parent::__construct($jsonFactory, $request);
         $this->getSourceItemsBySku = $getSourceItemsBySku;
         $this->productRepository = $productRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->request = $request;
         $this->sourceItemsSave = $sourceItemsSave;
     }
 
@@ -68,7 +68,7 @@ class Push extends BaseController implements HttpPostActionInterface {
      * @throws InputException
      * @throws NotFoundException
      */
-    public function execute()
+    public function executeAction(): array
     {
         $request = $this->getRequest();
         $success = [];
