@@ -1,25 +1,20 @@
 <?php
 namespace Auctane\Api\Controller\Diagnostics;
 
+use Auctane\Api\Controller\BaseController;
 use Magento\Framework\App\Action\HttpGetActionInterface;
-use Magento\Framework\App\CsrfAwareActionInterface;
-use Magento\Framework\App\Request\InvalidRequestException;
-use Magento\Framework\App\RequestInterface;
 
-class Live implements HttpGetActionInterface, CsrfAwareActionInterface {
-    public function execute() {
+class Live extends BaseController implements HttpGetActionInterface
+{
+    /**
+     * Endpoint used to determine if site is reachable.
+     *
+     * @return array
+     */
+    public function executeAction(): array
+    {
         return [
             'status' => 'alive'
         ];
-    }
-
-    public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
-    {
-        return null;
-    }
-
-    public function validateForCsrf(RequestInterface $request): ?bool
-    {
-        return true;
     }
 }
