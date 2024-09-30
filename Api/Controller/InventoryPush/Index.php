@@ -1,5 +1,5 @@
 <?php
-namespace Auctane\Api\Controller\Inventory;
+namespace Auctane\Api\Controller\InventoryPush;
 
 use Auctane\Api\Controller\BaseController;
 use Auctane\Api\Exception\BadRequestException;
@@ -14,7 +14,7 @@ use Magento\InventoryApi\Api\Data\SourceItemInterface;
 use Magento\InventoryApi\Api\GetSourceItemsBySkuInterface;
 use Magento\InventoryApi\Api\SourceItemsSaveInterface;
 
-class Push extends BaseController implements HttpPostActionInterface
+class Index extends BaseController implements HttpPostActionInterface
 {
 
     /**

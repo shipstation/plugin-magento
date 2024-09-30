@@ -1,6 +1,6 @@
 <?php
 
-namespace Auctane\Api\Controller\Inventory;
+namespace Auctane\Api\Controller\InventoryFetch;
 
 use Auctane\Api\Controller\BaseAuthorizedController;
 use Auctane\Api\Exception\BadRequestException;
@@ -10,7 +10,7 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Request\Http;
 
-class Fetch extends BaseAuthorizedController implements HttpPostActionInterface
+class Index extends BaseAuthorizedController implements HttpPostActionInterface
 {
     /**
      * @var GetSourceItemsBySkuInterface
