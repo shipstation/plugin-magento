@@ -2,9 +2,10 @@
 namespace Auctane\Api\Controller\SalesOrdersExport;
 
 use Auctane\Api\Controller\BaseController;
+use Auctane\Api\Exception\BadRequestException;
 use Exception;
-use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Helper\Image;
+use Magento\Directory\Model\ResourceModel\Region\CollectionFactory;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\GiftMessage\Helper\Message;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -32,6 +33,10 @@ class Index extends BaseController implements HttpPostActionInterface
     protected Image $imageHelper;
     /** @var Message */
     protected Message $giftMessageProvider;
+    /** @var mixed  */
+    protected mixed $requestBody;
+    /** @var CollectionFactory  */
+    protected CollectionFactory $regionCollection;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,
@@ -40,7 +45,8 @@ class Index extends BaseController implements HttpPostActionInterface
         SearchCriteriaBuilder $searchCriteriaBuilder,
         SortOrderBuilder $sortOrderBuilder,
         Image $imageHelper,
-        Message $giftMessageProvider
+        Message $giftMessageProvider,
+        CollectionFactory $regionCollection,
     ) {
         parent::__construct();
         $this->orderRepository = $orderRepository;
@@ -50,20 +56,25 @@ class Index extends BaseController implements HttpPostActionInterface
         $this->sortOrderBuilder = $sortOrderBuilder;
         $this->imageHelper = $imageHelper;
         $this->giftMessageProvider = $giftMessageProvider;
+        $this->regionCollection = $regionCollection;
     }
 
+    /**
+     * This method implements the SalesOrdersExport Logic found
+     * https://connect.shipengine.com/orders/reference/operation/OrderSource_SalesOrdersExport/
+     *
+     * @return array
+     * @throws BadRequestException
+     */
     public function executeAction(): array
     {
         // Parse the request body
-        $requestBody = json_decode($this->request->getContent(), true);
+        $this->requestBody = json_decode($this->request->getContent(), true);
 
         // Retrieve query parameters
-        $criteria = $requestBody['criteria'] ?? [];
+        $criteria = $this->requestBody['criteria'] ?? [];
         $fromDateTime = $criteria['from_date_time'] ?? null;
         $toDateTime = $criteria['to_date_time'] ?? null;
-
-        $cursor = $requestBody['cursor'] ?? null;
-        $pageSize = 100; // Default, you can use a request parameter if needed
 
         // Build search criteria with date filtering
         if ($fromDateTime) {
@@ -73,9 +84,22 @@ class Index extends BaseController implements HttpPostActionInterface
             $this->searchCriteriaBuilder->addFilter('updated_at', $toDateTime, 'lteq');
         }
 
-        $this->searchCriteriaBuilder->setPageSize($pageSize);
+        $cursor = $this->getCursor();
+        $currentPage = $cursor['page'];
+        $pageSize = $cursor['page_size'];
+
+        $this->searchCriteriaBuilder->setPageSize($pageSize)->setCurrentPage($currentPage);
         $searchCriteria = $this->searchCriteriaBuilder->create();
         $searchResults = $this->orderRepository->getList($searchCriteria);
+        $totalCount = $searchResults->getTotalCount();
+        $totalPages = ceil($totalCount / $cursor['page_size']);
+        $hasMorePages = $totalPages > $currentPage;
+        if ($currentPage > $totalPages) {
+            throw new BadRequestException('Current page is too big');
+        }
+        if ($currentPage <= 0) {
+            throw new BadRequestException('Current page is too small');
+        }
         $orders = $searchResults->getItems();
 
         $salesOrders = [];
@@ -83,8 +107,8 @@ class Index extends BaseController implements HttpPostActionInterface
             $salesOrders[] = [
                 'order_id' => $order->getEntityId(),
                 'order_number' => $order->getIncrementId(),
-                'status' => $order->getStatus(),
-                'paid_date' => $order->getCreatedAt(),
+                'status' => $this->getOrderStatus($order),
+                'paid_date' => $this->getOrderPaymentDate($order),
                 'requested_fulfillments' => $this->getRequestedFulfillments($order),
                 'buyer' => $this->getBuyerDetails($order),
                 'bill_to' => $this->getAddressDetails($order->getBillingAddress()),
@@ -100,15 +124,79 @@ class Index extends BaseController implements HttpPostActionInterface
 
         $response = [
             'sales_orders' => $salesOrders,
-            'cursor' => 'string' // Placeholder
         ];
+        if ($hasMorePages) {
+            $response['cursor'] = $this->getNextCursor($currentPage + 1, $pageSize, $totalPages, $totalCount);
+        }
         return $response;
+    }
+
+    /**
+     * This method attempts to get the cursor or a default
+     *
+     * @return array
+     * @throws BadRequestException
+     */
+    private function getCursor(): array
+    {
+        $cursor = $this->requestBody['cursor'] ?? null;
+        if (!is_string($cursor) || empty($cursor)) {
+            return [
+                'page' => 1,
+                'page_size' => 100,
+            ];
+        }
+        $cursorData = json_decode($cursor);
+        if (!is_numeric($cursorData->page)) {
+            throw new BadRequestException('cursor page "' . $cursorData->page . '" is invalid');
+        }
+        if (!is_numeric($cursorData->page_size)) {
+            throw new BadRequestException('cursor page_size "' . $cursorData->page_size . '" is invalid');
+        }
+        return [
+            'page' => $cursorData->page,
+            'page_size' => $cursorData->page_size,
+        ];
+    }
+
+    /**
+     * This method returns the serialized
+     *
+     * @param int $currentPage
+     * @param int $pageSize
+     * @param int $totalPages
+     * @param int $totalOrders
+     * @return string
+     */
+    private function getNextCursor(int $currentPage, int $pageSize, int $totalPages, int $totalOrders): string
+    {
+        return json_encode([
+            'page' => $currentPage,
+            'page_size' => $pageSize,
+            'total_pages' => $totalPages,
+            'total_orders' => $totalOrders,
+        ]);
+    }
+
+    private function getOrderPaymentDate(OrderInterface $order): string|null
+    {
+        $invoices = $order->getInvoiceCollection();
+        foreach ($invoices as $invoice) {
+            return $invoice->getCreatedAt();
+        }
+        return null;
     }
 
     private function getStoreDetails(OrderInterface $order): array
     {
         $store = $order->getStore();
-
+        $regionId = $store->getConfig(Information::XML_PATH_STORE_INFO_REGION_CODE);
+        try {
+            $regionCollection = $this->regionCollection->create();
+            $region = $regionCollection->getItemById($regionId);
+        } catch (Exception) {
+            $region = null;
+        }
         return [
             'name' => $store->getName(),
             'company' => $store->getConfig(Information::XML_PATH_STORE_INFO_NAME),
@@ -116,10 +204,9 @@ class Index extends BaseController implements HttpPostActionInterface
             'address_line_1' => $store->getConfig(Information::XML_PATH_STORE_INFO_STREET_LINE1),
             'address_line_2' => $store->getConfig(Information::XML_PATH_STORE_INFO_STREET_LINE2),
             'city' => $store->getConfig(Information::XML_PATH_STORE_INFO_CITY),
-            'state_province' => $store->getConfig(Information::XML_PATH_STORE_INFO_REGION_CODE),
+            'state_province' => $region?->getData('code'),
             'postal_code' => $store->getConfig(Information::XML_PATH_STORE_INFO_POSTCODE),
             'country_code' => $store->getConfig(Information::XML_PATH_STORE_INFO_COUNTRY_CODE),
-            'pickup_location' => []
         ];
     }
 
@@ -135,19 +222,13 @@ class Index extends BaseController implements HttpPostActionInterface
                         'line_item_id' => $item->getItemId(),
                         'description' => $item->getName(),
                         'product' => $this->getProductDetails($item),
-                        'quantity' => $item->getQtyOrdered(),
+                        'quantity' => (int)$item->getQtyOrdered(),
                         'unit_price' => floatval($item->getPrice()),
                         'taxes' => $this->getItemTaxes($item),
                         'shipping_charges' => $this->getItemShippingCharges($item),
                         'adjustments' => $this->getItemAdjustments($item),
-                        'item_url' => 'string', // Placeholder
                         'modified_date_time' => $item->getUpdatedAt(),
                     ]
-                ],
-                'extensions' => [
-                    'custom_field_1' => 'string', // Placeholder
-                    'custom_field_2' => 'string', // Placeholder
-                    'custom_field_3' => 'string'  // Placeholder
                 ],
                 'shipping_preferences' => $this->getShippingPreferences($order)
             ];
@@ -155,7 +236,7 @@ class Index extends BaseController implements HttpPostActionInterface
         return $fulfillments;
     }
 
-    private function getDimensions(ProductInterface $product): array|null
+    private function getDimensions(OrderItemInterface $product): array|null
     {
         $length = $product->getCustomAttribute('length')?->getValue();
         $width = $product->getCustomAttribute('width')?->getValue();
@@ -195,7 +276,7 @@ class Index extends BaseController implements HttpPostActionInterface
             return [
                 'product_id' => $productId,
                 'name' => $product->getName(),
-                'description' => $product->getCustomAttribute('description'),
+                'description' => $product->getDescription(),
                 'identifiers' => [
                     'sku' => $product->getSku(),
                 ],
@@ -203,9 +284,9 @@ class Index extends BaseController implements HttpPostActionInterface
                     'price' => floatval($product->getPrice()),
                     'weight' => [
                         'unit' => $this->mapWeightUnits($weightUnits),
-                        'value' => floatval($product->getWeight()),
+                        'value' => floatval($item->getWeight()),
                     ],
-                    'dimensions' => $this->getDimensions($product),
+                    'dimensions' => $this->getDimensions($item),
                 ],
                 'urls' => [
                     'thumbnail_url' => $thumbnailUrl,
@@ -242,7 +323,7 @@ class Index extends BaseController implements HttpPostActionInterface
             'address_line_2' => $address->getStreetLine(2),
             'address_line_3' => $address->getStreetLine(3),
             'city' => $address->getCity(),
-            'state_province' => $address->getRegion(),
+            'state_province' => $address->getRegionCode(),
             'postal_code' => $address->getPostcode(),
             'country_code' => $address->getCountryId(),
         ];
@@ -259,17 +340,45 @@ class Index extends BaseController implements HttpPostActionInterface
         ];
     }
 
+    private function getOrderStatus(OrderInterface $order): string
+    {
+        $status = $order->getStatus();
+        $userMappings = $this->requestBody['sales_order_status_mappings'] ?? [];
+        $defaultMappings = [
+            'pending' => 'AwaitingPayment',
+            'pending_payment' => 'AwaitingPayment',
+            'processing' => 'PendingFulfillment',
+            'complete' => 'Completed',
+            'closed' => 'Cancelled',
+            'canceled' => 'Cancelled',
+            'holded' => 'OnHold',
+            'payment_review' => 'AwaitingPayment',
+            'fraud' => 'Cancelled'
+        ];
+        $mappings = array_merge($defaultMappings, $userMappings);
+        return $mappings[$status] ?? 'Test';
+    }
     private function getPaymentDetails(OrderInterface $order): array
     {
+        $paymentStatusMapping = [
+            'pending' => 'AwaitingPayment',
+            'pending_payment' => 'AwaitingPayment',
+            'processing' => 'PaymentInProcess',
+            'complete' => 'Paid',
+            'closed' => 'PaymentCancelled',
+            'canceled' => 'PaymentCancelled',
+            'holded' => 'AwaitingPayment',
+            'payment_review' => 'PaymentInProcess',
+            'fraud' => 'PaymentFailed'
+        ];
         return [
             'payment_id' => $order->getPayment()->getEntityId(),
-            'payment_status' => $order->getStatus(),
+            'payment_status' => $paymentStatusMapping[$order->getStatus()] ?? "Other",
             'taxes' => $this->getOrderTaxes($order),
             'shipping_charges' => $this->getOrderShippingCharges($order),
             'adjustments' => $this->getOrderAdjustments($order),
             'amount_paid' => floatval($order->getTotalPaid()),
             'coupon_code' => $order->getCouponCode(),
-            'coupon_codes' => $order->getAppliedRuleIds(),
             'payment_method' => $order->getPayment()->getMethod(),
         ];
     }
@@ -299,12 +408,13 @@ class Index extends BaseController implements HttpPostActionInterface
 
     private function getOrderNotes(OrderInterface $order): array
     {
-        $notes = [
-            [
+        $notes = [];
+        if ($order->getCustomerNote()) {
+            $notes[] = [
                 'type' => 'NotesFromBuyer',
                 'text' => $order->getCustomerNote()
-            ]
-        ];
+            ];
+        }
         foreach ($order->getStatusHistoryCollection() as $history) {
             $comment = $history->getComment();
             if ($comment) {
@@ -327,36 +437,48 @@ class Index extends BaseController implements HttpPostActionInterface
 
     private function getItemTaxes(OrderItemInterface $item): array
     {
+        if (!$item->getTaxAmount()) {
+            return [];
+        }
         return [
             [
                 'amount' => floatval($item->getTaxAmount()),
-                'description' => 'string'
+                'description' => 'Taxed Amount'
             ]
         ];
     }
 
     private function getItemShippingCharges(OrderItemInterface $item): array
     {
+        if (!$item->getShippingAmount()) {
+            return [];
+        }
         return [
             [
                 'amount' => floatval($item->getShippingAmount()),
-                'description' => 'string'
+                'description' => 'Shipping Amount'
             ]
         ];
     }
 
     private function getItemAdjustments(OrderItemInterface $item): array
     {
+        if (!$item->getDiscountAmount() || $item->getDiscountAmount() == 0) {
+            return [];
+        }
         return [
             [
                 'amount' => floatval($item->getDiscountAmount()),
-                'description' => 'Discount'
+                'description' => 'Discount Amount'
             ]
         ];
     }
 
     private function getOrderTaxes(OrderInterface $order): array
     {
+        if (!$order->getTaxAmount()) {
+            return [];
+        }
         return [
             [
                 'amount' => floatval($order->getTaxAmount()),
@@ -367,6 +489,9 @@ class Index extends BaseController implements HttpPostActionInterface
 
     private function getOrderShippingCharges(OrderInterface $order): array
     {
+        if (!$order->getShippingAmount()) {
+            return [];
+        }
         return [
             [
                 'amount' => floatval($order->getShippingAmount()),
@@ -377,6 +502,9 @@ class Index extends BaseController implements HttpPostActionInterface
 
     private function getOrderAdjustments(OrderInterface $order): array
     {
+        if (!$order->getDiscountAmount() || $order->getDiscountAmount() === 0) {
+            return [];
+        }
         return [
             [
                 'amount' => floatval($order->getDiscountAmount()),
