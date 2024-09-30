@@ -2,15 +2,15 @@
 
 namespace Auctane\Api\Controller\Inventory;
 
-use Auctane\Api\Controller\BaseController;
+use Auctane\Api\Controller\BaseAuthorizedController;
 use Auctane\Api\Exception\BadRequestException;
-use Magento\Framework\App\Action\HttpGetActionInterface;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\InventoryApi\Api\GetSourceItemsBySkuInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Request\Http;
 
-class Fetch extends BaseController implements HttpGetActionInterface
+class Fetch extends BaseAuthorizedController implements HttpPostActionInterface
 {
     /**
      * @var GetSourceItemsBySkuInterface
@@ -53,16 +53,25 @@ class Fetch extends BaseController implements HttpGetActionInterface
      */
     public function executeAction(): array
     {
-        $page = (int)$this->request->getParam('page', 1); // Default to page 1
-        $pageSize = (int)$this->request->getParam('page_size', 100); // Default to 100 items per page
+        $request = json_decode($this->request->getContent(), true);
+        $criteria = $request['criteria'] ?? [];
+        $skus = $criteria['skus'] ?? [];
+        $cursor = $request['cursor'] ?? [];
+
+        $cursor = $this->getCursor($cursor);
+        $page = $cursor['page'];
+        $pageSize = $cursor['page_size'];
 
         // Create search criteria to fetch all products
         $searchCriteria = $this->searchCriteriaBuilder
             ->setCurrentPage($page)
-            ->setPageSize($pageSize)
-            ->create();
+            ->setPageSize($pageSize);
 
-        $productList = $this->productRepository->getList($searchCriteria);
+        if ($skus) {
+            $searchCriteria->addFilter('sku', $skus, 'in');
+        }
+
+        $productList = $this->productRepository->getList($searchCriteria->create());
         $totalProducts = $productList->getTotalCount();
         $totalPages = ceil($totalProducts / $pageSize);
 
@@ -71,38 +80,52 @@ class Fetch extends BaseController implements HttpGetActionInterface
         }
 
         $products = $productList->getItems();
-        $inventoryData = [];
-
+        $items = [];
+        $timestamp = date('c');
         foreach ($products as $product) {
             $sourceItems = $this->getSourceItemsBySku->execute($product->getSku());
-            $productInventory = [];
-
             foreach ($sourceItems as $sourceItem) {
-                $in_stock = filter_var($sourceItem->getStatus(), FILTER_VALIDATE_BOOLEAN);
-                $productInventory[] = [
-                    'source_code' => $sourceItem->getSourceCode(),
-                    'quantity' => $sourceItem->getQuantity(),
-                    'in_stock' => $in_stock,
+                $items[] = [
+                    'sku' => $product->getSku(),
+                    'name' => $product->getName(),
+                    'integration_inventory_item_id' => json_encode([
+                        'sku' => $sourceItem->getSku(),
+                        'source' => $sourceItem->getSourceCode()
+                    ]),
+                    'available_quantity' => (int)$sourceItem->getQuantity(),
+                    'fetched_at' => $timestamp,
                 ];
             }
-
-            $inventoryData[] = [
-                'sku' => $product->getSku(),
-                'name' => $product->getName(),
-                'inventory' => $productInventory
-            ];
         }
 
+        $hasMorePages = $page < $totalPages;
+
+        $response =[
+            'items' => $items,
+        ];
+        if ($hasMorePages) {
+            $response['cursor'] = json_encode([
+               'page' => $page + 1,
+               'page_size' => $pageSize,
+               'total_pages' => $totalPages,
+               'total_products' => $totalProducts,
+            ]);
+        }
+        return $response;
+    }
+
+    private function getCursor(mixed $cursor)
+    {
+        if (!$cursor) {
+            return [
+               'page' => 1,
+               'page_size' => 100,
+            ];
+        }
+        $cursorData = json_decode($cursor, true);
         return [
-            'status' => 'success',
-            'products' => $inventoryData,
-            'pagination' => [
-                'current_page' => $page,
-                'page_size' => $pageSize,
-                'total_products' => $totalProducts,
-                'total_pages' => $totalPages,
-                'has_more_pages' => $page < $totalPages
-            ]
+            'page' => $cursorData['page'] ?? 1,
+            'page_size' => $cursorData['page_size'] ?? 100,
         ];
     }
 }
