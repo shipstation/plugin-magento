@@ -3,6 +3,7 @@ namespace Auctane\Api\Controller\SalesOrdersExport;
 
 use Auctane\Api\Controller\BaseController;
 use Exception;
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Helper\Image;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\GiftMessage\Helper\Message;
@@ -13,7 +14,6 @@ use Magento\Sales\Api\ShipmentRepositoryInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SortOrderBuilder;
-use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Store\Model\Information;
 
 class Index extends BaseController implements HttpPostActionInterface
@@ -92,7 +92,6 @@ class Index extends BaseController implements HttpPostActionInterface
                 'tax_identifier' => $this->getTaxIdentifier($order),
                 'payment' => $this->getPaymentDetails($order),
                 'ship_from' => $this->getStoreDetails($order),
-                'order_url' => $this->getOrderUrl($order),
                 'notes' => $this->getOrderNotes($order),
                 'created_date_time' => $order->getCreatedAt(),
                 'modified_date_time' => $order->getUpdatedAt(),
@@ -137,7 +136,7 @@ class Index extends BaseController implements HttpPostActionInterface
                         'description' => $item->getName(),
                         'product' => $this->getProductDetails($item),
                         'quantity' => $item->getQtyOrdered(),
-                        'unit_price' => $item->getPrice(),
+                        'unit_price' => floatval($item->getPrice()),
                         'taxes' => $this->getItemTaxes($item),
                         'shipping_charges' => $this->getItemShippingCharges($item),
                         'adjustments' => $this->getItemAdjustments($item),
@@ -156,6 +155,31 @@ class Index extends BaseController implements HttpPostActionInterface
         return $fulfillments;
     }
 
+    private function getDimensions(ProductInterface $product): array|null
+    {
+        $length = $product->getCustomAttribute('length')?->getValue();
+        $width = $product->getCustomAttribute('width')?->getValue();
+        $height = $product->getCustomAttribute('height')?->getValue();
+        if (!$length || !$width || !$height) {
+            return null;
+        }
+        return [
+            'length' => $length,
+            'width' => $width,
+            'height' => $height,
+        ];
+    }
+
+    private function mapWeightUnits(string $units): string|null
+    {
+        $weightUnitMapping = [
+            'lbs' => 'Pound',
+            'kgs' => 'Kilogram',
+            'g'   => 'Gram',
+            'oz'  => 'Ounce'
+        ];
+        return $weightUnitMapping[$units] ?? null;
+    }
     private function getProductDetails(OrderItemInterface $item): array
     {
         try {
@@ -164,37 +188,35 @@ class Index extends BaseController implements HttpPostActionInterface
 
             $thumbnailUrl = $this->imageHelper->init($product, 'product_page_image_small')->getUrl();
             $largeImageUrl = $this->imageHelper->init($product, 'product_page_image_large')->getUrl();
-
+            $weightUnits = $this->scopeConfig->getValue(
+                'general/locale/weight_unit',
+                \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+            );
             return [
                 'product_id' => $productId,
                 'name' => $product->getName(),
-                'description' => $product->getDescription(),
+                'description' => $product->getCustomAttribute('description'),
                 'identifiers' => [
                     'sku' => $product->getSku(),
-                    'upc' => $product->getCustomAttribute('upc') ? $product->getCustomAttribute('upc')->getValue() : null,
-                    // Add other identifiers as needed
                 ],
                 'details' => [
-                    'price' => $product->getPrice(),
-                    'weight' => $product->getWeight(),
-                    'dimensions' => [
-                        'length' => $product->getCustomAttribute('length') ? $product->getCustomAttribute('length')->getValue() : null,
-                        'width' => $product->getCustomAttribute('width') ? $product->getCustomAttribute('width')->getValue() : null,
-                        'height' => $product->getCustomAttribute('height') ? $product->getCustomAttribute('height')->getValue() : null,
+                    'price' => floatval($product->getPrice()),
+                    'weight' => [
+                        'unit' => $this->mapWeightUnits($weightUnits),
+                        'value' => floatval($product->getWeight()),
                     ],
+                    'dimensions' => $this->getDimensions($product),
                 ],
                 'urls' => [
-                    'thumbnail' => $thumbnailUrl,
-                    'large_image' => $largeImageUrl,
+                    'thumbnail_url' => $thumbnailUrl,
+                    'image_url' => $largeImageUrl,
                     'product_url' => $product->getProductUrl(),
                 ],
-                'location' => 'string', // Placeholder, replace with actual data if needed
             ];
         } catch (Exception $exception) {
             return ['error' => $exception->getMessage()];
         }
     }
-
 
     private function getBuyerDetails(OrderInterface $order): array
     {
@@ -223,20 +245,17 @@ class Index extends BaseController implements HttpPostActionInterface
             'state_province' => $address->getRegion(),
             'postal_code' => $address->getPostcode(),
             'country_code' => $address->getCountryId(),
-            'residential_indicator' => 'string', // Placeholder
-            'is_verified' => true, // Placeholder
-            'pickup_location' => [
-                'carrier_id' => 'string', // Placeholder
-                'relay_id' => 'string' // Placeholder
-            ]
         ];
     }
 
-    private function getTaxIdentifier(OrderInterface $order): array
+    private function getTaxIdentifier(OrderInterface $order): array|null
     {
+        if (!$order->getCustomerTaxvat()) {
+            return null;
+        }
         return [
             'value' => $order->getCustomerTaxvat(),
-            'type' => 'TIN' // Placeholder
+            'type' => 'VAT'
         ];
     }
 
@@ -248,75 +267,69 @@ class Index extends BaseController implements HttpPostActionInterface
             'taxes' => $this->getOrderTaxes($order),
             'shipping_charges' => $this->getOrderShippingCharges($order),
             'adjustments' => $this->getOrderAdjustments($order),
-            'amount_paid' => $order->getTotalPaid(),
+            'amount_paid' => floatval($order->getTotalPaid()),
             'coupon_code' => $order->getCouponCode(),
             'coupon_codes' => $order->getAppliedRuleIds(),
             'payment_method' => $order->getPayment()->getMethod(),
-            'label_voucher' => [
-                'url' => 'string',
-                'token' => 'string'
-            ],
-            'prepaid_vat' => [
-                [
-                    'amount' => 0, // Placeholder
-                    'description' => 'string' // Placeholder
-                ]
-            ],
-            'purchase_order_number' => 'string' // Placeholder
         ];
     }
 
     private function getShippingPreferences(OrderInterface $order): array
     {
         return [
-            'digital_fulfillment' => false,
-            'additional_handling' => false,
-            'bill_duties_to_sender' => false,
-            'do_not_prepay_postage' => false,
-            'gift' => false,
-            'has_alcohol' => false,
-            'insurance_requested' => false,
-            'non_machinable' => false,
-            'saturday_delivery' => false,
-            'show_postage' => false,
-            'suppress_email_notify' => false,
-            'suppress_marketplace_notify' => false,
-            'deliver_by_date' => 'string', // Placeholder
-            'hold_until_date' => 'string', // Placeholder
-            'ready_to_ship_date' => 'string', // Placeholder
-            'ship_by_date' => 'string', // Placeholder
-            'preplanned_fulfillment_id' => 'string', // Placeholder
+            'digital_fulfillment' => $this->getIsDigitalFulfillment($order),
+            'gift' => $order->getGiftMessageId() !== null,
             'shipping_service' => $order->getShippingDescription(),
-            'package_type' => 'string', // Placeholder
-            'insured_value' => $order->getShippingAmount(),
-            'is_premium_program' => false,
-            'premium_program_name' => 'string',
-            'requested_warehouse' => 'string',
-            'documents' => [
-                [
-                    'type' => [],
-                    'data' => null,
-                    'format' => null
-                ]
-            ]
         ];
+    }
+
+    private function getIsDigitalFulfillment(OrderInterface $order): bool
+    {
+        $isDigital = true;
+        foreach ($order->getItems() as $item) {
+            $productType = $item->getProductType();
+            // Check if the product type is not digital (e.g., simple, configurable, bundle)
+            if ($productType !== 'virtual' && $productType !== 'downloadable') {
+                $isDigital = false;
+                break;
+            }
+        }
+        return $isDigital;
     }
 
     private function getOrderNotes(OrderInterface $order): array
     {
-        return [
+        $notes = [
             [
-                'type' => 'string', // Placeholder
+                'type' => 'NotesFromBuyer',
                 'text' => $order->getCustomerNote()
             ]
         ];
+        foreach ($order->getStatusHistoryCollection() as $history) {
+            $comment = $history->getComment();
+            if ($comment) {
+                $notes[] = [
+                    'type' => 'InternalNotes',
+                    'text' => $comment
+                ];
+            }
+        }
+        $giftMessageId = $order->getGiftMessageId();
+        if ($giftMessageId) {
+            $giftMessage = $this->giftMessageProvider->getGiftMessage($giftMessageId);
+            $notes[] = [
+                'type' => 'GiftMessage',
+                'text' => $giftMessage->getMessage(),
+            ];
+        }
+        return $notes;
     }
 
     private function getItemTaxes(OrderItemInterface $item): array
     {
         return [
             [
-                'amount' => $item->getTaxAmount(),
+                'amount' => floatval($item->getTaxAmount()),
                 'description' => 'string'
             ]
         ];
@@ -326,7 +339,7 @@ class Index extends BaseController implements HttpPostActionInterface
     {
         return [
             [
-                'amount' => $item->getShippingAmount(),
+                'amount' => floatval($item->getShippingAmount()),
                 'description' => 'string'
             ]
         ];
@@ -336,7 +349,7 @@ class Index extends BaseController implements HttpPostActionInterface
     {
         return [
             [
-                'amount' => $item->getDiscountAmount(),
+                'amount' => floatval($item->getDiscountAmount()),
                 'description' => 'Discount'
             ]
         ];
@@ -346,7 +359,7 @@ class Index extends BaseController implements HttpPostActionInterface
     {
         return [
             [
-                'amount' => $order->getTaxAmount(),
+                'amount' => floatval($order->getTaxAmount()),
                 'description' => 'Order Tax'
             ]
         ];
@@ -356,7 +369,7 @@ class Index extends BaseController implements HttpPostActionInterface
     {
         return [
             [
-                'amount' => $order->getShippingAmount(),
+                'amount' => floatval($order->getShippingAmount()),
                 'description' => 'Shipping Charge'
             ]
         ];
@@ -366,14 +379,9 @@ class Index extends BaseController implements HttpPostActionInterface
     {
         return [
             [
-                'amount' => $order->getDiscountAmount(),
+                'amount' => floatval($order->getDiscountAmount()),
                 'description' => 'Order Discount'
             ]
         ];
-    }
-
-    private function getOrderUrl(OrderInterface $order): string
-    {
-        return 'https://your-magento-store.com/orders/' . $order->getEntityId();
     }
 }
