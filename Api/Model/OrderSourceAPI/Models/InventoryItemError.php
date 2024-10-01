@@ -1,28 +1,28 @@
 <?php
 
-namespace Auctane\Api\Model\OrderSourceAPI;
+namespace Auctane\Api\Model\OrderSourceAPI\Models;
 
 class InventoryItemError
 {
     /**
      * @var string
      */
-    private $integrationInventoryItemId;
+    public string $integrationInventoryItemId;
 
     /**
      * @var string|null
      */
-    private $sku;
-
-    /**
-     * @var string
-     */
-    private $message;
+    public ?string $sku;
 
     /**
      * @var string|null
      */
-    private $category;
+    public ?string $message;
+
+    /**
+     * @var InventoryActionErrorCategoryType|null
+     */
+    public ?InventoryActionErrorCategoryType $category;
 
     /**
      * Constructor to initialize properties with JSON payload or as empty
@@ -37,47 +37,5 @@ class InventoryItemError
             $this->message = $data['message'] ?? '';
             $this->category = $data['category'] ?? null;
         }
-    }
-
-    // Getter and setter methods for each property
-
-    public function getIntegrationInventoryItemId(): string
-    {
-        return $this->integrationInventoryItemId;
-    }
-
-    public function setIntegrationInventoryItemId(string $integrationInventoryItemId): void
-    {
-        $this->integrationInventoryItemId = $integrationInventoryItemId;
-    }
-
-    public function getSku(): ?string
-    {
-        return $this->sku;
-    }
-
-    public function setSku(?string $sku): void
-    {
-        $this->sku = $sku;
-    }
-
-    public function getMessage(): string
-    {
-        return $this->message;
-    }
-
-    public function setMessage(string $message): void
-    {
-        $this->message = $message;
-    }
-
-    public function getCategory(): ?string
-    {
-        return $this->category;
-    }
-
-    public function setCategory(?string $category): void
-    {
-        $this->category = $category;
     }
 }
