@@ -4,6 +4,10 @@ namespace Auctane\Api\Controller\InventoryPush;
 use Auctane\Api\Controller\BaseController;
 use Auctane\Api\Exception\BadRequestException;
 use Auctane\Api\Exception\NotFoundException;
+use Auctane\Api\Model\OrderSourceAPI\Models\InventoryActionErrorCategoryType;
+use Auctane\Api\Model\OrderSourceAPI\Models\InventoryItemError;
+use Auctane\Api\Model\OrderSourceAPI\Requests\InventoryPushRequest;
+use Auctane\Api\Model\OrderSourceAPI\Responses\InventoryPushResponse;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Action\HttpPostActionInterface;
@@ -55,51 +59,36 @@ class Index extends BaseController implements HttpPostActionInterface
 
     /**
      * This is called when a user hits the /inventory endpoint
-     *
-     * @throws ValidationException
-     * @throws CouldNotSaveException
-     * @throws BadRequestException
-     * @throws InputException
-     * @throws NotFoundException
      */
-    public function executeAction(): array
+    public function executeAction(): InventoryPushResponse
     {
-        $request = $this->getRequest();
-        $success = [];
-        $errors = [];
-        foreach ($request as $inventoryItem) {
+        $request = new InventoryPushRequest(json_decode($this->request->getContent(), true));
+        $response = new InventoryPushResponse();
+        foreach ($request->items as $inventory) {
             try {
+                $id = json_decode($inventory->integration_inventory_item_id);
                 $this->saveUpdate(
-                    $inventoryItem['sku'],
-                    $inventoryItem['source_code'],
-                    $inventoryItem['quantity'],
-                    $inventoryItem['in_stock']
+                    $inventory->sku,
+                    $id->source,
+                    $inventory->available_quantity,
+                    $inventory->available_quantity > 0
                 );
-                $success[] = $inventoryItem;
             } catch (NotFoundException $nfException) {
-                $errors[] = [
-                    'sku' => $inventoryItem['sku'],
-                    'source_code' => $inventoryItem['source_code'],
-                    'quantity' => $inventoryItem['quantity'],
-                    'in_stock' => $inventoryItem['in_stock'],
-                    'message' => $nfException->getMessage(),
-                    'type' => 'not_found'
-                ];
+                $error =  new InventoryItemError();
+                $error->message = $nfException->getMessage();
+                $error->sku = $inventory->sku;
+                $error->integration_inventory_item_id = $inventory->integration_inventory_item_id;
+                $error->category = InventoryActionErrorCategoryType::NotFound;
+                $response->errors[] = $error;
             } catch (\Exception $e) {
-                $errors[] = [
-                    'sku' => $inventoryItem['sku'],
-                    'source_code' => $inventoryItem['source_code'],
-                    'quantity' => $inventoryItem['quantity'],
-                    'in_stock' => $inventoryItem['in_stock'],
-                    'message' => $e->getMessage(),
-                ];
+                $error =  new InventoryItemError();
+                $error->message = $e->getMessage();
+                $error->sku = $inventory->sku;
+                $error->integration_inventory_item_id = $inventory->integration_inventory_item_id;
+                $response->errors[] = $error;
             }
         }
-
-        return [
-            'updates' => $success,
-            'errors' => $errors,
-        ];
+        return $response;
     }
 
     /**
@@ -124,21 +113,6 @@ class Index extends BaseController implements HttpPostActionInterface
         $sourceItem->setStatus($in_stock ? 1 : 0);
         $sourceItemsToUpdate[] = $sourceItem;
         $this->sourceItemsSave->execute($sourceItemsToUpdate);
-    }
-
-    /**
-     *  Attempts to get the current request
-     *
-     * @throws BadRequestException
-     */
-    private function getRequest(): array
-    {
-        $body = $this->request->getContent();
-        $data = json_decode($body, true);
-        if (!is_array($data)) {
-            throw new BadRequestException('Invalid JSON body, expected an array and received ' . $data);
-        }
-        return $data;
     }
 
     /**

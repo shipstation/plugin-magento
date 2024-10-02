@@ -4,6 +4,9 @@ namespace Auctane\Api\Controller\InventoryFetch;
 
 use Auctane\Api\Controller\BaseAuthorizedController;
 use Auctane\Api\Exception\BadRequestException;
+use Auctane\Api\Model\OrderSourceAPI\Models\InventoryFetchItem;
+use Auctane\Api\Model\OrderSourceAPI\Requests\InventoryFetchRequest;
+use Auctane\Api\Model\OrderSourceAPI\Responses\InventoryFetchResponse;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\InventoryApi\Api\GetSourceItemsBySkuInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
@@ -50,13 +53,14 @@ class Index extends BaseAuthorizedController implements HttpPostActionInterface
      * This is called when a user hits the /inventory endpoint
      *
      * @throws BadRequestException
+     * @return InventoryFetchResponse
      */
-    public function executeAction(): array
+    public function executeAction(): InventoryFetchResponse
     {
-        $request = json_decode($this->request->getContent(), true);
-        $criteria = $request['criteria'] ?? [];
-        $skus = $criteria['skus'] ?? [];
-        $cursor = $request['cursor'] ?? [];
+        $request = new InventoryFetchRequest(json_decode($this->request->getContent(), true));
+        $criteria = $request->criteria;
+        $skus = $criteria->skus ?? [];
+        $cursor = $request->cursor ?? [];
 
         $cursor = $this->getCursor($cursor);
         $page = $cursor['page'];
@@ -85,7 +89,7 @@ class Index extends BaseAuthorizedController implements HttpPostActionInterface
         foreach ($products as $product) {
             $sourceItems = $this->getSourceItemsBySku->execute($product->getSku());
             foreach ($sourceItems as $sourceItem) {
-                $items[] = [
+                $items[] = new InventoryFetchItem([
                     'sku' => $product->getSku(),
                     'name' => $product->getName(),
                     'integration_inventory_item_id' => json_encode([
@@ -94,17 +98,16 @@ class Index extends BaseAuthorizedController implements HttpPostActionInterface
                     ]),
                     'available_quantity' => (int)$sourceItem->getQuantity(),
                     'fetched_at' => $timestamp,
-                ];
+                ]);
             }
         }
 
         $hasMorePages = $page < $totalPages;
 
-        $response =[
-            'items' => $items,
-        ];
+        $response = new InventoryFetchResponse();
+        $response->items = $items;
         if ($hasMorePages) {
-            $response['cursor'] = json_encode([
+            $response->cursor = json_encode([
                'page' => $page + 1,
                'page_size' => $pageSize,
                'total_pages' => $totalPages,

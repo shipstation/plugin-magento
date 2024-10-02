@@ -2,13 +2,13 @@
 
 namespace Auctane\Api\Model\OrderSourceAPI\Responses;
 
-use Auctane\Api\Model\OrderSourceAPI\Models\InventoryPushItem;
+use Auctane\Api\Model\OrderSourceAPI\Models\InventoryItemError;
 
 class InventoryPushResponse
 {
     /** @var string|null Any messages associated with the results inclosed  */
     public ?string $message;
-    /** @var array|null Any errrors associated with the results included  */
+    /** @var InventoryItemError[]|null Any errors associated with the results included  */
     public ?array $errors;
     /** @var string|mixed|null The next cursor to use for the next page of inventory  */
     public ?string $cursor;

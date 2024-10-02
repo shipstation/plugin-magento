@@ -31,7 +31,12 @@ class InventoryPushRequest extends RequestBase
     public function __construct(array $data = null)
     {
         if ($data) {
-            $this->items = isset($data['items']) ? $data['items'] : [];
+            $this->items = [];
+            if (isset($data['items'])) {
+                foreach ($data['items'] as $item) {
+                    $this->items[] = new InventoryPushItem($item);
+                }
+            }
             $this->cursor = isset($data['cursor']) ? $data['cursor'] : null;
         } else {
             $this->items = [];

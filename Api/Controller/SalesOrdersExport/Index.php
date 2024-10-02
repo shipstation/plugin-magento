@@ -6,7 +6,6 @@ use Auctane\Api\Exception\BadRequestException;
 use Auctane\Api\Model\OrderSourceAPI\Models\PaymentStatus;
 use Auctane\Api\Model\OrderSourceAPI\Models\SalesOrder;
 use Auctane\Api\Model\OrderSourceAPI\Models\SalesOrderStatus;
-use Auctane\Api\Model\OrderSourceAPI\Models\ShippingPreferences;
 use Auctane\Api\Model\OrderSourceAPI\Models\WeightUnit;
 use Auctane\Api\Model\OrderSourceAPI\Requests\SalesOrdersExportRequest;
 use Auctane\Api\Model\OrderSourceAPI\Responses\SalesOrdersExportResponse;

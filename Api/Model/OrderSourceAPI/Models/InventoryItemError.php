@@ -7,7 +7,7 @@ class InventoryItemError
     /**
      * @var string
      */
-    public string $integrationInventoryItemId;
+    public string $integration_inventory_item_id;
 
     /**
      * @var string|null
@@ -32,7 +32,7 @@ class InventoryItemError
     public function __construct(array $data = null)
     {
         if ($data) {
-            $this->integrationInventoryItemId = $data['integration_inventory_item_id'] ?? '';
+            $this->integration_inventory_item_id = $data['integration_inventory_item_id'] ?? '';
             $this->sku = $data['sku'] ?? null;
             $this->message = $data['message'] ?? '';
             $this->category = $data['category'] ?? null;
