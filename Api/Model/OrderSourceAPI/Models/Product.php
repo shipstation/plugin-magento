@@ -34,11 +34,12 @@ class Product
             $this->name = $data['name'];
             $this->description = $data['description'] ?? null;
             $this->identifiers = isset($data['identifiers']) ? new ProductIdentifiers($data['identifiers']) : null;
+            $this->details = [];
 
             if (isset($data['details'])) {
-                $this->details = array_map(function ($detail) {
-                    return new ProductDetail($detail);
-                }, $data['details']);
+                foreach ($data['details'] as $detail) {
+                    $this->details[] = new ProductDetail($detail);
+                }
             }
 
             $this->unit_cost = $data['unit_cost'] ?? null;

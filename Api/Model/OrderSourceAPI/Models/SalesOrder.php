@@ -47,7 +47,7 @@ class SalesOrder
      */
     public function __construct(array $data = null)
     {
-        if (is_array($data)) {
+        if ($data) {
             $this->order_id = $data['order_id'];
             $this->order_number = $data['order_number'] ?? null;
             $this->status = $data['status'];
@@ -59,12 +59,12 @@ class SalesOrder
                 fn($rf) => new RequestedFulfillment($rf),
                 $data['requested_fulfillments'] ?? []
             );
-            $this->buyer = $data['buyer'] ?? null;
-            $this->bill_to = $data['bill_to'] ?? null;
+            $this->buyer = new Buyer($data['buyer']);
+            $this->bill_to = new BillTo($data['bill_to']);
             $this->currency = $data['currency'] ?? null;
-            $this->tax_identifier = $data['tax_identifier'] ?? null;
-            $this->payment = $data['payment'] ?? null;
-            $this->ship_from = $data['ship_from'] ?? null;
+            $this->tax_identifier = new TaxIdentifier($data['tax_identifier']);
+            $this->payment = new Payment($data['payment']);
+            $this->ship_from = new Address($data['ship_from']);
             $this->order_url = $data['order_url'] ?? null;
             $this->notes = $data['notes'] ?? [];
             $this->integration_context = $data['integration_context'] ?? null;

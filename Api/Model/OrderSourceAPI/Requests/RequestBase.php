@@ -6,10 +6,10 @@ use Auctane\Api\Model\OrderSourceAPI\Models\Auth;
 
 abstract class RequestBase
 {
-    /** @var string|mixed A randomly generated transaction ID, used to correlate the request and response */
-    public string $transaction_id;
-    /** @var Auth The authorization information necessary to fulfill this request. */
-    public Auth $auth;
+    /** @var string|null A randomly generated transaction ID, used to correlate the request and response */
+    public ?string $transaction_id;
+    /** @var Auth|null The authorization information necessary to fulfill this request. */
+    public ?Auth $auth;
 
     /**
      * @param array|null $data

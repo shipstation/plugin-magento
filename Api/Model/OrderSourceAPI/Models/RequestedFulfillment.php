@@ -22,13 +22,16 @@ class RequestedFulfillment
      */
     public function __construct(array $data = null)
     {
-        if (is_array($data)) {
+        if ($data) {
             $this->requested_fulfillment_id = $data['requested_fulfillment_id'] ?? null;
-            $this->ship_to = $data['ship_to'] ?? null; // Pass Address instance
-            $this->items = $data['items'] ?? []; // Populate with SalesOrderItem instances
+            $this->ship_to = new Address($data['ship_to']); // Pass Address instance
+            $this->items = [];
+            foreach ($data['items'] as $item) {
+                $this->items[] = new SalesOrderItem($item);
+            }
             $this->extensions = !empty($data['extensions'])
                 ? new RequestedFulfillmentExtensions($data['extensions']) : null;
-            $this->shipping_preferences = $data['shipping_preferences'] ?? null;
+            $this->shipping_preferences = new ShippingPreferences($data['shipping_preferences']);
         }
     }
 }

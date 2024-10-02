@@ -51,10 +51,10 @@ abstract class BaseController implements HttpActionInterface, CsrfAwareActionInt
     /**
      * This method will be implemented by the controller and return the array payload.
      *
-     * @return array
+     * @return mixed
      * @throws ApiException
      */
-    abstract protected function executeAction(): array;
+    abstract protected function executeAction(): mixed;
 
     /**
      * This method determines whether a caller is authorized to make this call.

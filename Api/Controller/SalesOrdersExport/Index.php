@@ -3,6 +3,13 @@ namespace Auctane\Api\Controller\SalesOrdersExport;
 
 use Auctane\Api\Controller\BaseController;
 use Auctane\Api\Exception\BadRequestException;
+use Auctane\Api\Model\OrderSourceAPI\Models\PaymentStatus;
+use Auctane\Api\Model\OrderSourceAPI\Models\SalesOrder;
+use Auctane\Api\Model\OrderSourceAPI\Models\SalesOrderStatus;
+use Auctane\Api\Model\OrderSourceAPI\Models\ShippingPreferences;
+use Auctane\Api\Model\OrderSourceAPI\Models\WeightUnit;
+use Auctane\Api\Model\OrderSourceAPI\Requests\SalesOrdersExportRequest;
+use Auctane\Api\Model\OrderSourceAPI\Responses\SalesOrdersExportResponse;
 use Exception;
 use Magento\Catalog\Helper\Image;
 use Magento\Directory\Model\ResourceModel\Region\CollectionFactory;
@@ -33,8 +40,8 @@ class Index extends BaseController implements HttpPostActionInterface
     protected Image $imageHelper;
     /** @var Message */
     protected Message $giftMessageProvider;
-    /** @var mixed  */
-    protected mixed $requestBody;
+    /** @var SalesOrdersExportRequest  */
+    protected SalesOrdersExportRequest $salesOrdersExportRequest;
     /** @var CollectionFactory  */
     protected CollectionFactory $regionCollection;
 
@@ -63,18 +70,16 @@ class Index extends BaseController implements HttpPostActionInterface
      * This method implements the SalesOrdersExport Logic found
      * https://connect.shipengine.com/orders/reference/operation/OrderSource_SalesOrdersExport/
      *
-     * @return array
+     * @return SalesOrdersExportResponse
      * @throws BadRequestException
      */
-    public function executeAction(): array
+    public function executeAction(): SalesOrdersExportResponse
     {
         // Parse the request body
-        $this->requestBody = json_decode($this->request->getContent(), true);
-
+        $this->salesOrdersExportRequest = new SalesOrdersExportRequest(json_decode($this->request->getContent(), true));
         // Retrieve query parameters
-        $criteria = $this->requestBody['criteria'] ?? [];
-        $fromDateTime = $criteria['from_date_time'] ?? null;
-        $toDateTime = $criteria['to_date_time'] ?? null;
+        $fromDateTime = $this->salesOrdersExportRequest->criteria?->from_date_time ?? null;
+        $toDateTime = $this->salesOrdersExportRequest->criteria?->to_date_time ?? null;
 
         // Build search criteria with date filtering
         if ($fromDateTime) {
@@ -104,7 +109,7 @@ class Index extends BaseController implements HttpPostActionInterface
 
         $salesOrders = [];
         foreach ($orders as $order) {
-            $salesOrders[] = [
+            $salesOrders[] = new SalesOrder([
                 'order_id' => $order->getEntityId(),
                 'order_number' => $order->getIncrementId(),
                 'status' => $this->getOrderStatus($order),
@@ -119,14 +124,13 @@ class Index extends BaseController implements HttpPostActionInterface
                 'notes' => $this->getOrderNotes($order),
                 'created_date_time' => $order->getCreatedAt(),
                 'modified_date_time' => $order->getUpdatedAt(),
-            ];
+            ]);
         }
 
-        $response = [
-            'sales_orders' => $salesOrders,
-        ];
+        $response = new SalesOrdersExportResponse();
+        $response->sales_orders = $salesOrders;
         if ($hasMorePages) {
-            $response['cursor'] = $this->getNextCursor($currentPage + 1, $pageSize, $totalPages, $totalCount);
+            $response->cursor = $this->getNextCursor($currentPage + 1, $pageSize, $totalPages, $totalCount);
         }
         return $response;
     }
@@ -139,7 +143,7 @@ class Index extends BaseController implements HttpPostActionInterface
      */
     private function getCursor(): array
     {
-        $cursor = $this->requestBody['cursor'] ?? null;
+        $cursor = $this->salesOrdersExportRequest->cursor ?? null;
         if (!is_string($cursor) || empty($cursor)) {
             return [
                 'page' => 1,
@@ -251,13 +255,13 @@ class Index extends BaseController implements HttpPostActionInterface
         ];
     }
 
-    private function mapWeightUnits(string $units): string|null
+    private function mapWeightUnits(string $units): WeightUnit | null
     {
         $weightUnitMapping = [
-            'lbs' => 'Pound',
-            'kgs' => 'Kilogram',
-            'g'   => 'Gram',
-            'oz'  => 'Ounce'
+            'lbs' => WeightUnit::POUND,
+            'kgs' => WeightUnit::KILOGRAM,
+            'g'   => WeightUnit::GRAM,
+            'oz'  => WeightUnit::OUNCE,
         ];
         return $weightUnitMapping[$units] ?? null;
     }
@@ -280,14 +284,12 @@ class Index extends BaseController implements HttpPostActionInterface
                 'identifiers' => [
                     'sku' => $product->getSku(),
                 ],
-                'details' => [
-                    'price' => floatval($product->getPrice()),
-                    'weight' => [
-                        'unit' => $this->mapWeightUnits($weightUnits),
-                        'value' => floatval($item->getWeight()),
-                    ],
-                    'dimensions' => $this->getDimensions($item),
+                'price' => floatval($product->getPrice()),
+                'weight' => [
+                    'unit' => $this->mapWeightUnits($weightUnits),
+                    'value' => floatval($item->getWeight()),
                 ],
+                'dimensions' => $this->getDimensions($item),
                 'urls' => [
                     'thumbnail_url' => $thumbnailUrl,
                     'image_url' => $largeImageUrl,
@@ -340,36 +342,42 @@ class Index extends BaseController implements HttpPostActionInterface
         ];
     }
 
-    private function getOrderStatus(OrderInterface $order): string
+    /**
+     * This attempts to map the order status
+     *
+     * @param OrderInterface $order
+     * @return SalesOrderStatus
+     */
+    private function getOrderStatus(OrderInterface $order): SalesOrderStatus
     {
         $status = $order->getStatus();
-        $userMappings = $this->requestBody['sales_order_status_mappings'] ?? [];
+        $userMappings = $this->salesOrdersExportRequest->sales_order_status_mappings ?? [];
         $defaultMappings = [
-            'pending' => 'AwaitingPayment',
-            'pending_payment' => 'AwaitingPayment',
-            'processing' => 'PendingFulfillment',
-            'complete' => 'Completed',
-            'closed' => 'Cancelled',
-            'canceled' => 'Cancelled',
-            'holded' => 'OnHold',
-            'payment_review' => 'AwaitingPayment',
-            'fraud' => 'Cancelled'
+            'pending' => SalesOrderStatus::AwaitingPayment,
+            'pending_payment' => SalesOrderStatus::AwaitingPayment,
+            'processing' => SalesOrderStatus::PendingFulfillment,
+            'complete' => SalesOrderStatus::Completed,
+            'closed' => SalesOrderStatus::Cancelled,
+            'canceled' => SalesOrderStatus::Cancelled,
+            'holded' => SalesOrderStatus::OnHold,
+            'payment_review' => SalesOrderStatus::AwaitingPayment,
+            'fraud' => SalesOrderStatus::Cancelled,
         ];
         $mappings = array_merge($defaultMappings, $userMappings);
-        return $mappings[$status] ?? 'Test';
+        return $mappings[$status] ?? SalesOrderStatus::OnHold;
     }
     private function getPaymentDetails(OrderInterface $order): array
     {
         $paymentStatusMapping = [
-            'pending' => 'AwaitingPayment',
-            'pending_payment' => 'AwaitingPayment',
-            'processing' => 'PaymentInProcess',
-            'complete' => 'Paid',
-            'closed' => 'PaymentCancelled',
-            'canceled' => 'PaymentCancelled',
-            'holded' => 'AwaitingPayment',
-            'payment_review' => 'PaymentInProcess',
-            'fraud' => 'PaymentFailed'
+            'pending' => PaymentStatus::AwaitingPayment,
+            'pending_payment' => PaymentStatus::AwaitingPayment,
+            'processing' => PaymentStatus::PaymentInProcess,
+            'complete' => PaymentStatus::Paid,
+            'closed' => PaymentStatus::PaymentCancelled,
+            'canceled' => PaymentStatus::PaymentCancelled,
+            'holded' => PaymentStatus::AwaitingPayment,
+            'payment_review' => PaymentStatus::PaymentInProcess,
+            'fraud' => PaymentStatus::PaymentFailed
         ];
         return [
             'payment_id' => $order->getPayment()->getEntityId(),
