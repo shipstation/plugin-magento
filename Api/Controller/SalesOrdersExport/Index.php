@@ -1,6 +1,7 @@
 <?php
 namespace Auctane\Api\Controller\SalesOrdersExport;
 
+use Auctane\Api\Controller\BaseAuthorizedController;
 use Auctane\Api\Controller\BaseController;
 use Auctane\Api\Exception\BadRequestException;
 use Auctane\Api\Model\OrderSourceAPI\Models\PaymentStatus;
@@ -23,7 +24,7 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Store\Model\Information;
 
-class Index extends BaseController implements HttpPostActionInterface
+class Index extends BaseAuthorizedController implements HttpPostActionInterface
 {
     /** @var OrderRepositoryInterface */
     protected OrderRepositoryInterface $orderRepository;
