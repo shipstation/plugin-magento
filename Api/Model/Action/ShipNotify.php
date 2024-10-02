@@ -256,27 +256,26 @@ class ShipNotify
      *
      * @param Order $order
      * @return array
+     * @throws Exception
      */
     private function _canShip(Order $order): array
     {
-        $errors = [];
         if ($order->canUnhold() || $order->isPaymentReview()) {
-            $errors[] = "Order is in Payment Review state. Please check payment";
+            throw new Exception('Order is in Payment Review state. Please check payment');
         }
-        if ($order->getIsVirtual()){
-            $errors[] = "Order is virtual, can't be shipped";
+        if ($order->getIsVirtual()) {
+            throw new Exception('Order is virtual, can\'t be shipped');
         }
         if ($order->isCanceled()) {
-            $errors[] = "Order is cancelled";
+            throw new Exception('The order has been canceled');
         }
         if ($order->getActionFlag(Order::ACTION_FLAG_SHIP) === false) {
-            $errors[] = "Order has already been shipped";
+            throw new Exception('Order has already been shipped');
         }
 
         if(!$this->_canShipItems($order)){
             $errors[] = "No order item can be sent";
         }
-        return $errors;
     }
 
     /**
