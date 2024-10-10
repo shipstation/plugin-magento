@@ -1,17 +1,27 @@
-name: "Magento 2 Coding Standard"
+name: Move Code to Auctane Directory
+
 on:
-  push:
+  pull_request:
+    branches:
+      - master
+
 jobs:
-  coding-standard:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v3
+    # Step 1: Checkout the code
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Step 2: Set up Docker
+    - name: Run Docker
+      uses: addnab/docker-run-action@v3
       with:
-        fetch-depth: 0   # Depth is needed for PR violation reports
-    - name: Setup PHP with composer
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: 8.1
-        tools: composer:2.3, phpcs:3.6
-    - name: Run coding standard analysis
-      uses: codemanufacture/magento-coding-standard-action@v1
+        image: markoshust/magento-php:8.3-fpm-2
+        options: -v ${{ github.workspace }}:/var/www/html/src/app/code/Auctane
+        run: |
+          composer require --dev magento/magento-coding-standard
+          composer config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+          composer install
+          vendor/bin/phpcs --standard=Magento2 --report=junit /var/www/html/src/app/code/Auctane
