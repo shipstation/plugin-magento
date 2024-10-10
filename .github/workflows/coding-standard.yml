@@ -1,0 +1,17 @@
+name: "Magento 2 Coding Standard"
+on:
+  push:
+jobs:
+  coding-standard:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0   # Depth is needed for PR violation reports
+    - name: Setup PHP with composer
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: 8.1
+        tools: composer:2.3, phpcs:3.6
+    - name: Run coding standard analysis
+      uses: codemanufacture/magento-coding-standard-action@v1
