@@ -24,12 +24,13 @@ jobs:
           composer require --dev magento/magento-coding-standard
           composer config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
           composer install
-          vendor/bin/phpcs --standard=Magento2 --report=checkstyle --report-file=/var/www/html/src/app/code/Auctane/report.xml --runtime-set ignore_warnings_on_exit 1 /var/www/html/src/app/code/Auctane
+          vendor/bin/phpcs --standard=Magento2 --report=junit --report-file=/var/www/html/src/app/code/Auctane/report.xml --runtime-set ignore_warnings_on_exit 1 /var/www/html/src/app/code/Auctane
     
     # Step 3: Publish Test Report
-    - name: Publish Test Results
+    - name: Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()
       with:
+        comment_mode: 'off'
         files: |
-          report.xml
+          *.xml
