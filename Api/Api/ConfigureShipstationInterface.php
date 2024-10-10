@@ -2,10 +2,8 @@
 
 namespace Auctane\Api\Api;
 
-
 /**
  * Interface ConfigureShipstationInterface
- * @package Auctane\Api\Api
  */
 interface ConfigureShipstationInterface
 {

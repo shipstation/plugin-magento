@@ -24,11 +24,6 @@ use Magento\Framework\Webapi\Exception as WebapiException;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 
-
-/**
- * Class Index
- * @package Auctane\Api\Controller\Auctane
- */
 class Index extends Action implements CsrfAwareActionInterface
 {
     /** @var Authenticator */
@@ -59,8 +54,7 @@ class Index extends Action implements CsrfAwareActionInterface
         ShipNotify $shipNotify,
         Authenticator $authenticator,
         LoggerInterface $logger
-    )
-    {
+    ) {
         parent::__construct($context);
 
         $this->dataHelper = $dataHelper;

@@ -6,11 +6,6 @@ use Magento\Backend\Block\Widget\Button;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 
-
-/**
- * Class GenerateApiKeyButton
- * @package Auctane\Api\Block\System\Config
- */
 class GenerateApiKeyButton extends Field
 {
     /**

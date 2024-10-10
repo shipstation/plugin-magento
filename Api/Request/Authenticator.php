@@ -11,11 +11,6 @@ use Magento\Framework\Oauth\TokenProviderInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
-
-/**
- * Class Authenticator
- * @package Auctane\Api\Request
- */
 class Authenticator
 {
     /** @var StorageInterface */
@@ -44,14 +39,12 @@ class Authenticator
         StoreManagerInterface $storeManager,
         TokenProviderInterface $tokenProvider,
         Http $request
-    )
-    {
+    ) {
         $this->storage = $storage;
         $this->scopeConfig = $scopeConfig;
         $this->storeManager = $storeManager;
         $this->tokenProvider = $tokenProvider;
         $this->request = $request;
-
     }
 
     /**
@@ -67,14 +60,16 @@ class Authenticator
         $storeIds = null;
 
         // Matching SEC request
-        if ( $accessToken = $this->request->getHeader('SEC-Access-Token') ) {
+        if ($accessToken = $this->request->getHeader('SEC-Access-Token')) {
             try {
                 $this->tokenProvider->validateAccessToken($accessToken);
                 $storeIds = [];
-                if ( $SECStoreIds = $this->request->getHeader('SEC-Store-IDs') ) {
+                if ($SECStoreIds = $this->request->getHeader('SEC-Store-IDs')) {
                     $storeIds = explode(",", $SECStoreIds);
                 }
-            } catch (Exception $e) {}
+            } catch (Exception $e) {
+
+            }
         }
 
         // Matching api key at store level.

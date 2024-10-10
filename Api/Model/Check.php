@@ -6,11 +6,6 @@ use Auctane\Api\Api\CheckInterface;
 use Auctane\Api\Exception\AuthenticationFailedException;
 use Auctane\Api\Request\Authenticator;
 
-
-/**
- * Class Check
- * @package Auctane\Api\Model
- */
 class Check implements CheckInterface
 {
     /**
@@ -25,8 +20,7 @@ class Check implements CheckInterface
      */
     public function __construct(
         Authenticator $authenticator
-    )
-    {
+    ) {
         $this->authenticator = $authenticator;
     }
 

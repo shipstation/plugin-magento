@@ -7,10 +7,6 @@ use Magento\Framework\App\ActionInterface;
 use Magento\Framework\App\Request\CsrfValidator;
 use Magento\Framework\App\RequestInterface;
 
-/**
- * Class CsrfValidatorSkip
- * @package Auctane\Api\Plugin
- */
 class CsrfValidatorSkip
 {
     const CONTROLLER_MODULE = 'Auctane_Api';

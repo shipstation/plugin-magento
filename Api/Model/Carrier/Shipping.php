@@ -141,8 +141,10 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
      */
     public function collectRates(RateRequest $request)
     {
-        try{
-            if (!$this->getConfigFlag('active')) return false;
+        try {
+            if (!$this->getConfigFlag('active')) {
+                return false;
+            }
 
             // Set scope for data retreival
             $scopeTypeDefault = \Magento\Framework\App\Config\ScopeConfigInterface::SCOPE_TYPE_DEFAULT;
@@ -153,23 +155,31 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
             $ratesUrl = $this->_scopeConfig->getValue('carriers/shipstation/rates_url', $scopeTypeDefault);
 
             // Validate
-            if (empty($optionKey)) return false;
-            if (empty($marketplaceKey)) return false;
-            if (empty($ratesUrl)) return false;
+            if (empty($optionKey)) {
+                return false;
+            }
+            if (empty($marketplaceKey)) {
+                return false;
+            }
+            if (empty($ratesUrl)) {
+                return false;
+            }
 
             // Creation of the data contract
-            $shippingRequest = array();
+            $shippingRequest = [];
 
             // If there's an already selected ShipStation shipping method then this method is being called
             // expecting that this method will be returned as a verification. Use the verify endpoint.
             // Otherwise, it's a standard rates request, use the rate endpoint.
             $currentMethod = $this->cart->getQuote()->getShippingAddress()->getShippingMethod();
 
-            if($currentMethod && $this->_startsWith($currentMethod, $this->_code)) $isValidation = true;
-            else $isValidation = false;
+            if ($currentMethod && $this->_startsWith($currentMethod, $this->_code)) {
+                $isValidation = true;
+            } else {
+                $isValidation = false;
+            }
 
-            if($isValidation)
-            {
+            if ($isValidation) {
                 // Strip out the carrier code to leave the quote UUID and supply this
                 $currentMethod = str_replace($this->_code . '_', '', $currentMethod);
                 $shippingRequest['quote_id'] = $currentMethod;
@@ -179,18 +189,17 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
             $shippingRequest = $this->_getCartDetails($shippingRequest, $request);
 
             // Add standard connection details
-            $shippingRequest['connection_options'] = array
-            (
+            $shippingRequest['connection_options'] =
+            [
                 'option_key' => $optionKey,
                 'marketplace_key' => $marketplaceKey
-            );
+            ];
 
             // Call ShipStation Endpoint
-            $response = $this->_callApi ($ratesUrl, json_encode($shippingRequest));
+            $response = $this->_callApi($ratesUrl, json_encode($shippingRequest));
 
             // If it didn't go so well, log the response info and don't pass any methods back
-            if(!$response->isOk())
-            {
+            if (!$response->isOk()) {
                 $this->_logger->error('[SHIPSTATION] From: ' . $this->class->getName());
                 $this->_logger->error('[SHIPSTATION] Status Code: ' . $response->getStatusCode());
                 $this->_logger->error('[SHIPSTATION] URL: ' . $ratesUrl);
@@ -207,13 +216,12 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
             $result = $this->rateResultFactory->create();
 
             // Add each of the returned rates to the Result object
-            foreach($shippingResponse->options as $deliveryOption)
+            foreach ($shippingResponse->options as $deliveryOption) {
                 $result->append($this->_createShippingMethod($deliveryOption));
+            }
 
             return $result;
-        }
-        catch(\Exception $e)
-        {
+        } catch (\Exception $e) {
             $this->_logger->error('[SHIPSTATION] From: ' . $this->class->getName());
             $this->_logger->error('[SHIPSTATION] Message: ' . $e->getMessage());
             return false;
@@ -228,9 +236,10 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
         return [$this->_code => $this->getConfigData('name')];
     }
 
-    public function processAdditionalValidation(\Magento\Framework\DataObject $request) {
+    public function processAdditionalValidation(\Magento\Framework\DataObject $request)
+    {
         return true;
-     }
+    }
 
     /**
      * Do shipment request to carrier web service, obtain Print Shipping Labels and process errors in response
@@ -241,7 +250,6 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
      */
     protected function _doShipmentRequest(\Magento\Framework\DataObject $request)
     {
-
     }
 
     /**
@@ -251,19 +259,19 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
      * @param string $startString
      * @return bool
      */
-    protected function _startsWith ($string, $startString)
+    protected function _startsWith($string, $startString)
     {
         $len = strlen($startString);
         return (substr($string, 0, $len) === $startString);
     }
 
 /**
-     * Posts supplied JSON to a supplied endpoint, updated for Laminas
-     *
-     * @param string $endPoint
-     * @param string $requestJson
-     * @return \Laminas\Http\Response
-     */
+ * Posts supplied JSON to a supplied endpoint, updated for Laminas
+ *
+ * @param string $endPoint
+ * @param string $requestJson
+ * @return \Laminas\Http\Response
+ */
     protected function _callApi($endPoint, $requestJson)
     {
         $this->laminasClient->reset();
@@ -281,7 +289,7 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
      * @param object $shipStationMethod
      * @return \Magento\Quote\Model\Quote\Address\RateResult\Method
      */
-    protected function _createShippingMethod ($shipStationMethod)
+    protected function _createShippingMethod($shipStationMethod)
     {
         /** @var \Magento\Quote\Model\Quote\Address\RateResult\Method $method */
         $method = $this->rateMethodFactory->create();
@@ -304,21 +312,21 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
     protected function formatShippingMethodTitle($shipStationMethod)
     {
         $displayName = $shipStationMethod->display_name;
-        if(isset($shipStationMethod->min_transit_days) || isset($shipStationMethod->max_transit_days)){
+        if (isset($shipStationMethod->min_transit_days) || isset($shipStationMethod->max_transit_days)) {
             $displayName .= ", ";
-            if(isset($shipStationMethod->min_transit_days) && isset($shipStationMethod->max_transit_days)){
+            if (isset($shipStationMethod->min_transit_days) && isset($shipStationMethod->max_transit_days)) {
                 $displayName .= sprintf("%s - %s", $shipStationMethod->min_transit_days, $shipStationMethod->max_transit_days);
-            }else{
-                if(isset($shipStationMethod->min_transit_days)){
+            } else {
+                if (isset($shipStationMethod->min_transit_days)) {
                     $displayName .= sprintf("min %s", $shipStationMethod->min_transit_days);
                 }
-                if(isset($shipStationMethod->max_transit_days)){
+                if (isset($shipStationMethod->max_transit_days)) {
                     $displayName .= sprintf("max %s", $shipStationMethod->max_transit_days);
                 }
             }
             $displayName .= " estimated transit days";
         }
-        if(isset($shipStationMethod->description)){
+        if (isset($shipStationMethod->description)) {
             $displayName .= ', ' . $shipStationMethod->description;
         }
         return $displayName;
@@ -337,50 +345,50 @@ class Shipping extends AbstractCarrierOnline implements CarrierInterface
         $scopeTypeStore = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
 
         // Destination address lines are concatenated in the RateRequest object so explode here.
-        $streetLines = explode("\n",$request->getDestStreet() ?? '');
-        $origStreetLines = explode("\n",$request->getDestStreet() ?? '');
+        $streetLines = explode("\n", $request->getDestStreet() ?? '');
+        $origStreetLines = explode("\n", $request->getDestStreet() ?? '');
 
-        $shippingRequest['origin_store'] = array
-        (
-            'street_1' => $this->_scopeConfig->getValue('general/store_information/street_line1',  $scopeTypeStore),
-            'street_2' => $this->_scopeConfig->getValue('general/store_information/street_line2',  $scopeTypeStore),
-            'zip' => $this->_scopeConfig->getValue('general/store_information/postcode',  $scopeTypeStore),
-            'city' => $this->_scopeConfig->getValue('general/store_information/city',  $scopeTypeStore),
-            'state' => $this->_scopeConfig->getValue('general/store_information/region_id',  $scopeTypeStore),
-            'country' => $this->_scopeConfig->getValue('general/store_information/country_id',  $scopeTypeStore),
-        );
-        $shippingRequest['origin'] = array
-        (
-            'street_1' => $this->_scopeConfig->getValue('shipping/origin/street_line1',  $scopeTypeStore),
-            'street_2' => $this->_scopeConfig->getValue('shipping/origin/street_line2',  $scopeTypeStore),
-            'zip' => $this->_scopeConfig->getValue('shipping/origin/postcode',  $scopeTypeStore),
-            'city' => $this->_scopeConfig->getValue('shipping/origin/city',  $scopeTypeStore),
-            'state' => $this->_scopeConfig->getValue('shipping/origin/region_id',  $scopeTypeStore),
-            'country' => $this->_scopeConfig->getValue('shipping/origin/country_id',  $scopeTypeStore),
-        );
+        $shippingRequest['origin_store'] =
+        [
+            'street_1' => $this->_scopeConfig->getValue('general/store_information/street_line1', $scopeTypeStore),
+            'street_2' => $this->_scopeConfig->getValue('general/store_information/street_line2', $scopeTypeStore),
+            'zip' => $this->_scopeConfig->getValue('general/store_information/postcode', $scopeTypeStore),
+            'city' => $this->_scopeConfig->getValue('general/store_information/city', $scopeTypeStore),
+            'state' => $this->_scopeConfig->getValue('general/store_information/region_id', $scopeTypeStore),
+            'country' => $this->_scopeConfig->getValue('general/store_information/country_id', $scopeTypeStore),
+        ];
+        $shippingRequest['origin'] =
+        [
+            'street_1' => $this->_scopeConfig->getValue('shipping/origin/street_line1', $scopeTypeStore),
+            'street_2' => $this->_scopeConfig->getValue('shipping/origin/street_line2', $scopeTypeStore),
+            'zip' => $this->_scopeConfig->getValue('shipping/origin/postcode', $scopeTypeStore),
+            'city' => $this->_scopeConfig->getValue('shipping/origin/city', $scopeTypeStore),
+            'state' => $this->_scopeConfig->getValue('shipping/origin/region_id', $scopeTypeStore),
+            'country' => $this->_scopeConfig->getValue('shipping/origin/country_id', $scopeTypeStore),
+        ];
 
-        $shippingRequest['destination'] = array
-        (
+        $shippingRequest['destination'] =
+        [
             'street_1' => (count($streetLines) > 0 ? $streetLines[0] : null),
             'street_2' => (count($streetLines) > 1 ? $streetLines[1] : null),
             'zip' => $request->getDestPostcode(),
             'city' => $request->getDestCity(),
             'state' => $request->getDestRegionCode(),
             'country' => $request->getDestCountryId(),
-        );
-        $shippingRequest['items'] = array();
+        ];
+        $shippingRequest['items'] = [];
         if ($request->getAllItems()) {
             foreach ($request->getAllItems() as $item) {
-                $shipstation_item = array
-                (
+                $shipstation_item =
+                [
                     'sku' => $item->getsku(),
                     'product_id' => $item->getitem_id(),
                     'name' => $item->getname(),
-                    'weight' => array('units' => $this->_scopeConfig->getValue('general/locale/weight_unit', $scopeTypeStore),
-                                    'value' => $item->getWeight()),
-                    'price_per_item' => array( 'currency' =>$this->storeManager->getStore()->getCurrentCurrency()->getCode(), 'amount' => strval($item->getPrice())),
+                    'weight' => ['units' => $this->_scopeConfig->getValue('general/locale/weight_unit', $scopeTypeStore),
+                                    'value' => $item->getWeight()],
+                    'price_per_item' => [ 'currency' =>$this->storeManager->getStore()->getCurrentCurrency()->getCode(), 'amount' => strval($item->getPrice())],
                     'quantity' => $item->getQty(),
-                );
+                ];
                 array_push($shippingRequest['items'], $shipstation_item);
             }
         }

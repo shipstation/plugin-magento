@@ -4,11 +4,6 @@ namespace Auctane\Api\Model\Config\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
 
-
-/**
- * Class ImportChild
- * @package Auctane\Api\Model\Config\Source
- */
 class ImportChild implements OptionSourceInterface
 {
     const CHILD_ONLY_VALUE = 2;

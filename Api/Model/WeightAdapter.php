@@ -5,12 +5,6 @@ namespace Auctane\Api\Model;
 use Magento\Directory\Helper\Data;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 
-
-/**
- * Class WeightAdapter
- *
- * @package Auctane\Api\Model
- */
 class WeightAdapter
 {
     const LOCAL_UNIT_KGS = 'kgs';
@@ -36,8 +30,7 @@ class WeightAdapter
     public function __construct(
         ScopeConfigInterface $scopeConfig,
         WeightFactory $weightFactory
-    )
-    {
+    ) {
         $this->scopeConfig = $scopeConfig;
 
         $this->weightFactory = $weightFactory;

@@ -24,11 +24,6 @@ use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
 use Magento\Store\Model\ScopeInterface;
 use Psr\Log\LoggerInterface;
 
-
-/**
- * Class Export
- * @package Auctane\Api\Model\Action
- */
 class Export
 {
     /**
@@ -136,8 +131,7 @@ class Export
         WeightAdapter $weightAdapter,
         RegionCollectionFactory $regionCollectionFactory,
         LoggerInterface $logger
-    )
-    {
+    ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_eavConfig = $eavConfig;
         $this->_dataHelper = $dataHelper;
@@ -264,28 +258,23 @@ class Export
         $this->_getInternalNotes($order);
         $this->addXmlElement("StoreCode", "<![CDATA[{$order->getStore()->getCode()}]]>");
 
-        if ($order->getGiftMessageId())
-		{
-			$this->_getGiftMessageInfo($order);
-		} 
-		else 
-		{
-			$item = null;
-			foreach ($order->getItems() as $orderItem) 
-			{
-				if ($orderItem->getGiftMessageId()) 
-				{
-					$item = $orderItem;
-					break;
-				}
-			}
-	
-			if ($item) {
-				$this->_getGiftMessageInfo($item);
-			} else {
-				$this->_getGiftMessageInfo($order);
-			}
-		}
+        if ($order->getGiftMessageId()) {
+            $this->_getGiftMessageInfo($order);
+        } else {
+            $item = null;
+            foreach ($order->getItems() as $orderItem) {
+                if ($orderItem->getGiftMessageId()) {
+                    $item = $orderItem;
+                    break;
+                }
+            }
+    
+            if ($item) {
+                $this->_getGiftMessageInfo($item);
+            } else {
+                $this->_getGiftMessageInfo($order);
+            }
+        }
 
         $this->_xmlData .= "\t<Customer>\n";
         $this->addXmlElement("CustomerCode", "<![CDATA[{$order->getCustomerEmail()}]]>");
@@ -334,9 +323,11 @@ class Export
      */
     private function _getInternalNotes(Order $order)
     {
-        $internalNotes = array();
+        $internalNotes = [];
         foreach ($order->getStatusHistoryCollection() as $internalNote) {
-            if (empty(trim($internalNote->getComment() ?? ""))) continue; // You can no longer trim a null string in PHP8.
+            if (empty(trim($internalNote->getComment() ?? ""))) {
+                continue; // You can no longer trim a null string in PHP8.
+            }
             array_unshift($internalNotes, $internalNote->getComment());
         }
         $internalNotes = implode("\n", $internalNotes);
@@ -407,14 +398,13 @@ class Export
      * @return string
      */
     private function trimChars(string $value = null, int $maxLength): string
-    {   
+    {
         if (strlen($value ?? "") > $maxLength) {
 
             $this->logger->warning('The value is too long (magento). Trimming '.$value.' to '.$maxLength.' characters from '.strlen($value));
 
             return mb_substr($value ?? "", 0, $maxLength);
-        }
-        else {
+        } else {
 
             return $value ?? "";
         }

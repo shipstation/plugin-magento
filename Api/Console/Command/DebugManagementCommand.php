@@ -8,11 +8,6 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- * Class DebugManagementCommand
- *
- * @package Auctane\Api\Console\Command
- */
 class DebugManagementCommand extends Command
 {
     const COMMAND_NAME = 'auctane:api:debug';
@@ -31,8 +26,7 @@ class DebugManagementCommand extends Command
      */
     public function __construct(
         WriterInterface $config
-    )
-    {
+    ) {
         parent::__construct(self::COMMAND_NAME);
 
         $this->config = $config;

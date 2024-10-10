@@ -11,5 +11,14 @@
         <route id="api" frontName="api">
             <module name="Auctane_Api"/>
         </route>
+        <route id="inventory" frontName="inventory">
+            <module name="Auctane_Api"/>
+        </route>
+        <route id="diagnostics" frontName="diagnostics">
+            <module name="Auctane_Api"/>
+        </route>
+        <route id="sales_orders_export" frontName="sales_orders_export">
+            <module name="Auctane_Api"/>
+        </route>
     </router>
 </config>
