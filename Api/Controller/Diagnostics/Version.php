@@ -20,7 +20,7 @@ class Version extends BaseController implements HttpGetActionInterface
 
     public function __construct(
         ProductMetadataInterface $productMetadata,
-        ModuleListInterface $moduleList,
+        ModuleListInterface $moduleList
     ) {
         parent::__construct();
         $this->productMetadata = $productMetadata;

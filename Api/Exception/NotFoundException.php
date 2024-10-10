@@ -1,7 +1,8 @@
 <?php
 namespace Auctane\Api\Exception;
 
-class NotFoundException extends ApiException {
+class NotFoundException extends ApiException
+{
     /**
      * Constructor method for a 400 bad request
      *

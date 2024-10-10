@@ -5,19 +5,19 @@ namespace Auctane\Api\Model\OrderSourceAPI\Models;
 class DetailedError
 {
     /** @var string|null */
-    public $external_error_code;
+    public ?string $external_error_code;
 
     /** @var string|null */
-    public $message;
+    public ?string $message;
 
     /** @var int|null */
-    public $external_http_status_code;
+    public ?int $external_http_status_code;
 
     /** @var string|null */
-    public $raw_external_context;
+    public ?string $raw_external_context;
 
-    /** @var string */
-    public $standardized_error_code;
+    /** @var string|null */
+    public ?string $standardized_error_code;
 
     public function __construct($jsonPayload = null)
     {
@@ -36,12 +36,4 @@ class DetailedError
             $this->standardized_error_code = null;
         }
     }
-}
-
-class ShipEngineErrorCode
-{
-    const GENERIC = 'generic';
-    const SERIALIZATION = 'serialization';
-    const VALIDATION = 'validation';
-    const EXTERNAL_CLIENT_ERROR = 'external_client_error';
 }

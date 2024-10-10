@@ -6,4 +6,6 @@ use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\Action\HttpPutActionInterface;
 
-interface HttpActionInterface extends HttpPostActionInterface, HttpGetActionInterface, HttpDeleteActionInterface, HttpPutActionInterface {}
+interface HttpActionInterface extends HttpPostActionInterface, HttpGetActionInterface, HttpDeleteActionInterface, HttpPutActionInterface
+{
+}

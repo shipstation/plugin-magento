@@ -7,12 +7,6 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Exception\FileSystemException;
 
-
-/**
- * Class IndexPlugin
- *
- * @package Auctane\Api\Controller\Auctane
- */
 class IndexPlugin
 {
     /** @var DirectoryList */
@@ -30,8 +24,7 @@ class IndexPlugin
     public function __construct(
         ScopeConfigInterface $scopeConfig,
         DirectoryList $directoryList
-    )
-    {
+    ) {
         $this->scopeConfig = $scopeConfig;
         $this->directoryList = $directoryList;
     }

@@ -4,7 +4,7 @@
     'jquery',
   ], function (jQuery) {
     jQuery('#generate_and_save_api_key').on('click', function () {
-        return new Ajax.Request("<?= $block->escapeUrl($block->getApiKeyGenerationUrl()) ?>", {
+        return new Ajax.Request("<?= $escaper->escapeUrl($block->getApiKeyGenerationUrl()) ?>", {
             loaderArea: true,
             asynchronous: true,
             onSuccess: function (response) {

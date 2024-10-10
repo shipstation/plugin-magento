@@ -25,11 +25,6 @@ use Magento\Sales\Model\Order\ShipmentFactory;
 use Magento\Sales\Model\OrderFactory;
 use SimpleXMLElement;
 
-
-/**
- * Class ShipNotify
- * @package Auctane\Api\Model\Action
- */
 class ShipNotify
 {
     /**
@@ -154,8 +149,7 @@ class ShipNotify
         Data $dataHelper,
         DirectoryList $directoryList,
         ShipmentExtensionFactory $shipmentExtensionFactory
-    )
-    {
+    ) {
         $this->_orderFactory = $orderFactory;
         $this->_scopeConfig = $scopeConfig;
         $this->_transactionFactory = $transactionFactory;
@@ -273,7 +267,7 @@ class ShipNotify
             $errors[] = "Order has already been shipped";
         }
 
-        if(!$this->_canShipItems($order)){
+        if (!$this->_canShipItems($order)) {
             $errors[] = "No order item can be sent";
         }
         return $errors;

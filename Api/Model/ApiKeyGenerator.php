@@ -5,11 +5,6 @@
 
 namespace Auctane\Api\Model;
 
-
-/**
- * Class ApiKeyGenerator
- * @package Auctane\Api\Model
- */
 class ApiKeyGenerator
 {
     const API_KEY_BYTES_AMOUNT = 16;
