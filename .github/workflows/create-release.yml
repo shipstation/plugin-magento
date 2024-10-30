@@ -33,19 +33,19 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Zip the entire repository directory
-      run: zip -r source-${{ env.TAG_NAME }}.zip .
+      run: zip -r ${{ runner.temp }}/source-${{ env.TAG_NAME }}.zip . -x .git/\* .github/\* .gitignore
     
     - name: Tar the entire repository directory
-      run: tar -czvf source-${{ env.TAG_NAME }}.tar.gz .
+      run: tar -czvf ${{ runner.temp }}/source-${{ env.TAG_NAME }}.tar.gz --exclude=.git --exclude=.github .
 
     - name: Zip the Api directory
-      run: zip -r Auctane_Api-${{ env.TAG_NAME }}.zip Api
+      run: zip -r ${{ runner.temp }}/Auctane_Api-${{ env.TAG_NAME }}.zip Api
 
     - name: Upload source zip file
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./source-${{ env.TAG_NAME }}.zip
+        asset_path: ${{ runner.temp }}/source-${{ env.TAG_NAME }}.zip
         asset_name: source-${{ env.TAG_NAME }}.zip
         asset_content_type: application/zip
 
@@ -53,7 +53,7 @@ jobs:
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./source-${{ env.TAG_NAME }}.tar.gz
+        asset_path: ${{ runner.temp }}/source-${{ env.TAG_NAME }}.tar.gz
         asset_name: source-${{ env.TAG_NAME }}.tar.gz
         asset_content_type: application/gzip
 
@@ -61,6 +61,6 @@ jobs:
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./Auctane_Api-${{ env.TAG_NAME }}.zip
+        asset_path: ${{ runner.temp }}/Auctane_Api-${{ env.TAG_NAME }}.zip
         asset_name: Auctane_Api-${{ env.TAG_NAME }}.zip
         asset_content_type: application/zip
