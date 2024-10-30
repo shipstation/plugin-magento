@@ -1,0 +1,66 @@
+name: Create Release on Tag
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    name: Create Release and Upload Assets
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up version and release name
+      id: vars
+      run: |
+        TAG_NAME=${GITHUB_REF#refs/tags/}
+        echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
+        echo "RELEASE_NAME=${TAG_NAME}" >> $GITHUB_ENV
+
+    - name: Create release
+      id: create_release
+      uses: actions/create-release@v1
+      with:
+        tag_name: ${{ env.TAG_NAME }}
+        release_name: ${{ env.RELEASE_NAME }}
+        draft: true
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Zip the entire repository directory
+      run: zip -r source-${{ env.TAG_NAME }}.zip .
+    
+    - name: Tar the entire repository directory
+      run: tar -czvf source-${{ env.TAG_NAME }}.tar.gz .
+
+    - name: Zip the Api directory
+      run: zip -r Auctane_Api-${{ env.TAG_NAME }}.zip Api
+
+    - name: Upload source zip file
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./source-${{ env.TAG_NAME }}.zip
+        asset_name: source-${{ env.TAG_NAME }}.zip
+        asset_content_type: application/zip
+
+    - name: Upload source tar.gz file
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./source-${{ env.TAG_NAME }}.tar.gz
+        asset_name: source-${{ env.TAG_NAME }}.tar.gz
+        asset_content_type: application/gzip
+
+    - name: Upload Api zip file
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./Auctane_Api-${{ env.TAG_NAME }}.zip
+        asset_name: Auctane_Api-${{ env.TAG_NAME }}.zip
+        asset_content_type: application/zip
