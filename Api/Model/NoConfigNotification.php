@@ -25,18 +25,26 @@ class NoConfigNotification implements \Magento\Framework\Notification\MessageInt
         $scopeTypeDefault = \Magento\Framework\App\Config\ScopeConfigInterface::SCOPE_TYPE_DEFAULT;
 
         // If the extension is not enabled in the Shipping section then no need to display
-        if (!$this->_scopeConfig->getValue('carriers/shipstation/active', $scopeTypeDefault)) return false;
+        if (!$this->_scopeConfig->getValue('carriers/shipstation/active', $scopeTypeDefault)) {
+            return false;
+        }
 
         // If any of these are empty, it needs reconfiguring.
         $option_key = $this->_scopeConfig->getValue('carriers/shipstation/option_key', $scopeTypeDefault);
         //error_log($option_key ?? ''); -  this exposes the carrier key in log files when it *is* set correctly, and should be removed.
-        if (empty($option_key)) return true;
+        if (empty($option_key)) {
+            return true;
+        }
 
         $marketplace_key = $this->_scopeConfig->getValue('carriers/shipstation/marketplace_key', $scopeTypeDefault);
-        if (empty($marketplace_key)) return true;
+        if (empty($marketplace_key)) {
+            return true;
+        }
 
         $rates_url = $this->_scopeConfig->getValue('carriers/shipstation/rates_url', $scopeTypeDefault);
-        if (empty($rates_url)) return true;
+        if (empty($rates_url)) {
+            return true;
+        }
 
         return false;
     }

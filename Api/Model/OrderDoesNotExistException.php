@@ -7,11 +7,6 @@ namespace Auctane\Api\Model;
 
 use Magento\Framework\Exception\LocalizedException;
 
-
-/**
- * Class OrderDoesNotExistException
- * @package Auctane\Api\Model
- */
 class OrderDoesNotExistException extends LocalizedException
 {
     /**

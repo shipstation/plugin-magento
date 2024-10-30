@@ -10,11 +10,6 @@ use Magento\Framework\AuthorizationInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Controller\ResultInterface;
 
-
-/**
- * Class Index
- * @package Auctane\Api\Controller\Adminhtml\ApiKey
- */
 class Index extends Action implements AuthorizationInterface
 {
     /**
@@ -37,8 +32,7 @@ class Index extends Action implements AuthorizationInterface
         Context $context,
         JsonFactory $resultJsonFactory,
         ApiKeyGenerator $apiKeyGenerator
-    )
-    {
+    ) {
         parent::__construct($context);
 
         $this->resultJsonFactory = $resultJsonFactory;

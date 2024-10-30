@@ -25,11 +25,6 @@ use Magento\Sales\Model\Order\ShipmentFactory;
 use Magento\Sales\Model\OrderFactory;
 use SimpleXMLElement;
 
-
-/**
- * Class ShipNotify
- * @package Auctane\Api\Model\Action
- */
 class ShipNotify
 {
     /**
@@ -154,8 +149,7 @@ class ShipNotify
         Data $dataHelper,
         DirectoryList $directoryList,
         ShipmentExtensionFactory $shipmentExtensionFactory
-    )
-    {
+    ) {
         $this->_orderFactory = $orderFactory;
         $this->_scopeConfig = $scopeConfig;
         $this->_transactionFactory = $transactionFactory;
@@ -263,17 +257,17 @@ class ShipNotify
         if ($order->canUnhold() || $order->isPaymentReview()) {
             $errors[] = "Order is in Payment Review state. Please check payment";
         }
-        if ($order->getIsVirtual()){
+        if ($order->getIsVirtual()) {
             $errors[] = "Order is virtual, can't be shipped";
         }
         if ($order->isCanceled()) {
-            $errors[] = "Order is cancelled";
+            $errors[] = "The order has been canceled";
         }
         if ($order->getActionFlag(Order::ACTION_FLAG_SHIP) === false) {
             $errors[] = "Order has already been shipped";
         }
 
-        if(!$this->_canShipItems($order)){
+        if (!$this->_canShipItems($order)) {
             $errors[] = "No order item can be sent";
         }
         return $errors;

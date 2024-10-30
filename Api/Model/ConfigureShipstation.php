@@ -10,11 +10,6 @@ use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\PageCache\Model\Cache\Type;
 
-
-/**
- * Class ConfigureShipstation
- * @package Auctane\Api\Model
- */
 class ConfigureShipstation implements ConfigureShipstationInterface
 {
     /**
@@ -41,8 +36,7 @@ class ConfigureShipstation implements ConfigureShipstationInterface
         WriterInterface $configWriter,
         TypeListInterface $cacheTypeList,
         Authenticator $authenticator
-    )
-    {
+    ) {
         $this->configWriter = $configWriter;
         $this->cacheTypeList = $cacheTypeList;
         $this->authenticator = $authenticator;
