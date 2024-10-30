@@ -43,6 +43,8 @@ jobs:
 
     - name: Upload source zip file
       uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ${{ runner.temp }}/source-${{ env.TAG_NAME }}.zip
@@ -51,6 +53,8 @@ jobs:
 
     - name: Upload source tar.gz file
       uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ${{ runner.temp }}/source-${{ env.TAG_NAME }}.tar.gz
@@ -59,6 +63,8 @@ jobs:
 
     - name: Upload Api zip file
       uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ${{ runner.temp }}/Auctane_Api-${{ env.TAG_NAME }}.zip
