@@ -32,34 +32,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Zip the entire repository directory
-      run: zip -r ${{ runner.temp }}/source-${{ env.TAG_NAME }}.zip . -x .git/\* .github/\* .gitignore
-    
-    - name: Tar the entire repository directory
-      run: tar -czvf ${{ runner.temp }}/source-${{ env.TAG_NAME }}.tar.gz --exclude=.git --exclude=.github .
-
     - name: Zip the Api directory
       run: zip -r ${{ runner.temp }}/Auctane_Api-${{ env.TAG_NAME }}.zip Api
-
-    - name: Upload source zip file
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ runner.temp }}/source-${{ env.TAG_NAME }}.zip
-        asset_name: source-${{ env.TAG_NAME }}.zip
-        asset_content_type: application/zip
-
-    - name: Upload source tar.gz file
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ runner.temp }}/source-${{ env.TAG_NAME }}.tar.gz
-        asset_name: source-${{ env.TAG_NAME }}.tar.gz
-        asset_content_type: application/gzip
 
     - name: Upload Api zip file
       uses: actions/upload-release-asset@v1

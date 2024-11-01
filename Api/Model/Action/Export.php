@@ -251,7 +251,10 @@ class Export
             $orderTax = $order->getTaxAmount();
             $orderShipping = $order->getShippingAmount();
         }
-
+        $payment = $order->getPayment();
+        if ($payment) {
+           $this->addXmlElement("PaymentMethod", "<![CDATA[{$payment->getMethod()}]]>");
+        }
         $this->addXmlElement("OrderTotal", "<![CDATA[{$orderTotal}]]>");
         $this->addXmlElement("TaxAmount", "<![CDATA[{$orderTax}]]>");
         $this->addXmlElement("ShippingAmount", "<![CDATA[{$orderShipping}]]>");
