@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+# [2.5.2-beta] - 2025-04-17
+### Update
+- Fixed Issue with page sizing with empty results
+
 ## [2.5.1-beta] - 2024-11-01
 ### Added
 - Updated custom store export implementation to include the payment method.
