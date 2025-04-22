@@ -97,18 +97,15 @@ class Index extends BaseAuthorizedController implements HttpPostActionInterface
         $searchCriteria = $this->searchCriteriaBuilder->create();
         $searchResults = $this->orderRepository->getList($searchCriteria);
         $totalCount = $searchResults->getTotalCount();
-        if ($totalCount == 0) {
-            $response = new SalesOrdersExportResponse();
-            $response->sales_orders = [];
-            return $response;
-        }
         $totalPages = ceil($totalCount / $cursor['page_size']);
         $hasMorePages = $totalPages > $currentPage;
-        if ($currentPage > $totalPages || $currentPage <= 0) {
+
+        if ($totalCount == 0 || $currentPage > $totalPages || $currentPage <= 0) {
             $response = new SalesOrdersExportResponse();
             $response->sales_orders = [];
             return $response;
         }
+
         $orders = $searchResults->getItems();
 
         $salesOrders = [];
