@@ -99,12 +99,13 @@ class Index extends BaseAuthorizedController implements HttpPostActionInterface
         $totalCount = $searchResults->getTotalCount();
         $totalPages = ceil($totalCount / $cursor['page_size']);
         $hasMorePages = $totalPages > $currentPage;
-        if ($currentPage > $totalPages) {
-            throw new BadRequestException('Current page is too big');
+
+        if ($totalCount == 0 || $currentPage > $totalPages || $currentPage <= 0) {
+            $response = new SalesOrdersExportResponse();
+            $response->sales_orders = [];
+            return $response;
         }
-        if ($currentPage <= 0) {
-            throw new BadRequestException('Current page is too small');
-        }
+
         $orders = $searchResults->getItems();
 
         $salesOrders = [];
