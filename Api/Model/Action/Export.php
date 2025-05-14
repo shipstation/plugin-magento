@@ -100,6 +100,13 @@ class Export
      */
     private $_attributes = '';
 
+    /**
+     * UPC mapping attribute
+     *
+     * @var string
+     */
+    private $_upcMapping = '';
+
     /** @var WeightAdapter */
     private $weightAdapter;
 
@@ -155,6 +162,9 @@ class Export
         //Check for the import child items for the bundle product
         $attributes = 'shipstation_general/shipstation/attribute';
         $this->_attributes = $this->_scopeConfig->getValue($attributes, ScopeInterface::SCOPE_STORE);
+        //Get UPC mapping attribute
+        $upcMapping = 'shipstation_general/shipstation/upc_mapping';
+        $this->_upcMapping = $this->_scopeConfig->getValue($upcMapping, ScopeInterface::SCOPE_STORE);
     }
 
     /**
@@ -196,6 +206,10 @@ class Export
      */
     private function toDateString(?string $urlDate): ?string
     {
+        if ($urlDate === null) {
+            return null;
+        }
+
         $time = strtotime(urldecode($urlDate));
 
         if (!$time) {
@@ -271,7 +285,7 @@ class Export
                     break;
                 }
             }
-    
+
             if ($item) {
                 $this->_getGiftMessageInfo($item);
             } else {
@@ -527,6 +541,11 @@ class Export
             $this->addXmlElement("UnitPrice", "<![CDATA[{$price}]]>");
             $this->addXmlElement("Quantity", "<![CDATA[". (int)$orderItem->getQtyOrdered() ."]]>");
 
+            $upcValue = $this->_getUPC($product);
+            if ($upcValue) {
+                $this->addXmlElement("UPC", "<![CDATA[{$upcValue}]]>");
+            }
+
             /*
              * Check for the attributes
              */
@@ -678,5 +697,43 @@ class Export
         $this->addXmlElement("Quantity", 1);
         $this->addXmlElement("UnitPrice", "<![CDATA[{$order->getDiscountAmount()}]]>");
         $this->_xmlData .= "\t</Item>\n";
+    }
+
+    /**
+     * @param \Magento\Catalog\Model\Product|null $product
+     * @return string|null
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    private function _getUPC(?\Magento\Catalog\Model\Product $product): ?string
+    {
+        if (empty($this->_upcMapping) || empty($product)) {
+            return null;
+        }
+        $attribute = $this->_upcMapping;
+        if (!$product->hasData($attribute)) {
+            return null;
+        }
+
+        $attributeInfo = $this->_eavConfig->getAttribute(
+            $this->_getEntityType(),
+            $attribute
+        );
+
+        if (empty($attributeInfo) || empty($attributeInfo->getId())) {
+            return null;
+        }
+        $inputType = $attributeInfo->getFrontendInput();
+        if (in_array($inputType, ['select', 'multiselect'])) {
+            $upcValue = $product->getAttributeText($attribute);
+        } else {
+            $upcValue = $product->getData($attribute);
+        }
+        if(empty($upcValue)) {
+            return null;
+        }
+        if (is_array($upcValue)) {
+            $upcValue = implode(', ', $upcValue);
+        }
+        return $upcValue;
     }
 }
