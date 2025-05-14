@@ -4,22 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-# [2.5.2-beta] - 2025-04-17
-### Update
-- Fixed Issue with page sizing with empty results
-
-## [2.4.9] - 2025-05-14
+## [2.5.3] - 2025-05-14
 ### Added
 - Added UPC mapping functionality to order exports
 - Added ability to select product attribute to use as UPC value in order exports
 
-## [2.5.1-beta] - 2024-11-01
+# [2.5.2] - 2025-04-17
+### Update
+- Fixed Issue with page sizing with empty results
+
+## [2.5.1] - 2024-11-01
 ### Added
 - Updated custom store export implementation to include the payment method.
 ### Update
 - Release Job 
 
-## [2.5.0-beta] - 2024-10-30
+## [2.5.0] - 2024-10-30
 ### Added
 - ShipEngine Connect Models
 - Release Action
