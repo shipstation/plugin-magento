@@ -30,16 +30,23 @@ class UpcMapping implements \Magento\Framework\Option\ArrayInterface
     public function toOptionArray()
     {
         $attributesCollection = $this->_factory->create();
-        $attributes = [['value' => '', 'label' => __('-- Please Select --')]];
+        $pleaseSelectOption = [['value' => '', 'label' => __('-- Please Select --')]];
+        $attributeOptions = [];
         
         foreach ($attributesCollection as $attribute) {
             $code = $attribute->getAttributeCode();
             $label = $attribute->getFrontendLabel();
             if ($label) {
-                $attributes[] = ['value' => $code, 'label' => $label];
+                $attributeOptions[] = ['value' => $code, 'label' => $label];
             }
         }
         
-        return $attributes;
+        // Sort attributes alphabetically by label
+        usort($attributeOptions, function ($a, $b) {
+            return strcmp($a['label'], $b['label']);
+        });
+        
+        // Merge the "Please Select" option with the sorted attributes
+        return array_merge($pleaseSelectOption, $attributeOptions);
     }
 }
