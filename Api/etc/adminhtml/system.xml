@@ -40,6 +40,12 @@
                     <label>Import Child Products</label>
                     <source_model>Auctane\Api\Model\Config\Source\ImportChild</source_model>
                 </field>
+                <field id="upc_mapping" translate="label" type="select" sortOrder="22"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>UPC Mapping</label>
+                    <comment>Select product attribute to use as UPC value in order exports</comment>
+                    <source_model>Auctane\Api\Model\Config\Source\UpcMapping</source_model>
+                </field>
                 <field id="custom_invoicing" translate="label" type="select" sortOrder="25"
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Custom/Auto Invoicing Enabled</label>
