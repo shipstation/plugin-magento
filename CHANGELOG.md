@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.5.4] - 2025-05-19
+### Update
+- Removed const string from ShipmentNotification [ORD-4355]() Caused issued in PHP 8.2 and below
+
 ## [2.5.3] - 2025-05-14
 ### Added
 - Added UPC mapping functionality to order exports

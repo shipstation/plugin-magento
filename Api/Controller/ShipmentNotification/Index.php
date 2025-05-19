@@ -26,7 +26,7 @@ use Psr\Log\LoggerInterface;
 class Index extends BaseAuthorizedController implements HttpPostActionInterface
 {
     /** @var string Invoice Comment */
-    protected const string COMMENT = 'Issued by Auctane ShipStation.';
+    protected const COMMENT = 'Issued by Auctane ShipStation.';
     /** @var OrderRepositoryInterface  */
     protected OrderRepositoryInterface $orderRepository;
     /** @var ShipmentRepositoryInterface  */
