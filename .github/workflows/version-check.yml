@@ -1,0 +1,35 @@
+name: Version Check
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  check-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Check version consistency
+        run: |
+          # Extract version from composer.json
+          COMPOSER_VERSION=$(jq -r '.version' Api/composer.json)
+          echo "Version from composer.json: $COMPOSER_VERSION"
+          
+          # Extract version from module.xml
+          MODULE_VERSION=$(grep -oP 'setup_version="\K[^"]+' Api/etc/module.xml)
+          echo "Version from module.xml: $MODULE_VERSION"
+          
+          # Compare versions
+          if [ "$COMPOSER_VERSION" = "$MODULE_VERSION" ]; then
+            echo "✅ Versions match: $COMPOSER_VERSION"
+            exit 0
+          else
+            echo "❌ Version mismatch!"
+            echo "composer.json version: $COMPOSER_VERSION"
+            echo "module.xml version: $MODULE_VERSION"
+            exit 1
+          fi
