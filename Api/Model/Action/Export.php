@@ -414,7 +414,7 @@ class Export
      * @param int $maxLength
      * @return string
      */
-    private function trimChars(string $value = null, int $maxLength): string
+    private function trimChars(?string $value, int $maxLength): string
     {
         if (strlen($value ?? "") > $maxLength) {
 
