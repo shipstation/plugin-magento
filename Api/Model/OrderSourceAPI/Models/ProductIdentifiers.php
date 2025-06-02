@@ -19,7 +19,7 @@ class ProductIdentifiers
     /**
      * @param array|null $data
      */
-    public function __construct(array $data = null)
+    public function __construct(?array $data = null)
     {
         if ($data !== null) {
             $this->sku = $data['sku'] ?? null;

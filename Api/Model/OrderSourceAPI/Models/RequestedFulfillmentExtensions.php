@@ -13,7 +13,7 @@ class RequestedFulfillmentExtensions
     /**
      * @param array|null $data
      */
-    public function __construct(array $data = null)
+    public function __construct(?array $data = null)
     {
         if (is_array($data)) {
             $this->custom_field_1 = $data['custom_field_1'] ?? null;

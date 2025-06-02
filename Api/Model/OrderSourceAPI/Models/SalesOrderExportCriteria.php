@@ -12,7 +12,7 @@ class SalesOrderExportCriteria
     /**
      * @param array|null $data
      */
-    public function __construct(array $data = null)
+    public function __construct(?array $data = null)
     {
         $this->from_date_time = $data['from_date_time'] ?? null;
         $this->to_date_time = $data['to_date_time'] ?? null;

@@ -45,7 +45,7 @@ class SalesOrder
     /**
      * @param array|null $data
      */
-    public function __construct(array $data = null)
+    public function __construct(?array $data = null)
     {
         if ($data) {
             $this->order_id = $data['order_id'];

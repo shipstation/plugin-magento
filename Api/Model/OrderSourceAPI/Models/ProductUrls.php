@@ -13,7 +13,7 @@ class ProductUrls
     /**
      * @param array|null $data
      */
-    public function __construct(array $data = null)
+    public function __construct(?array $data = null)
     {
         if ($data !== null) {
             $this->product_url = $data['product_url'] ?? null;

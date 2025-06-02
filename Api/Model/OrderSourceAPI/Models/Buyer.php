@@ -39,7 +39,7 @@ class Buyer
      * Buyer constructor.
      * @param array|null $data JSON data to populate the Buyer class properties
      */
-    public function __construct(array $data = null)
+    public function __construct(?array $data = null)
     {
         if ($data !== null) {
             $this->buyer_id = $data['buyer_id'] ?? null;

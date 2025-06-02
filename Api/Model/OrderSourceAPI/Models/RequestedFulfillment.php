@@ -20,7 +20,7 @@ class RequestedFulfillment
     /**
      * @param array|null $data
      */
-    public function __construct(array $data = null)
+    public function __construct(?array $data = null)
     {
         if ($data) {
             $this->requested_fulfillment_id = $data['requested_fulfillment_id'] ?? null;

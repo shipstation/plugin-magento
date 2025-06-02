@@ -16,7 +16,7 @@ class InventoryFetchCriteria
     /**
      * @param array|null $data
      */
-    public function __construct(array $data = null)
+    public function __construct(?array $data = null)
     {
         if ($data) {
             $this->skus = $data['skus'] ?? null;

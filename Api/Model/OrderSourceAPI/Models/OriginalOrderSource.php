@@ -13,7 +13,7 @@ class OriginalOrderSource
     /**
      * @param array|null $data
      */
-    public function __construct(array $data = null)
+    public function __construct(?array $data = null)
     {
         if (is_array($data)) {
             $this->source_id = $data['source_id'] ?? null;
