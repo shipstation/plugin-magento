@@ -20,11 +20,16 @@
         "psr-4": {
             "Auctane\\Api\\": "Api/",
             "Auctane\\Api\\Tests\\": "tests/"
-        }
+        },
+        "files": [
+            "tests/Mock/functions.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
-            "Auctane\\Api\\Tests\\": "tests/"
+            "Auctane\\Api\\Tests\\": "tests/",
+            "Magento\\Framework\\": "tests/Mock/Framework/",
+            "Magento\\Framework\\Exception\\": "tests/Mock/Framework/Exception/"
         }
     },
     "scripts": {

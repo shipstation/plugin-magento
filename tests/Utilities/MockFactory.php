@@ -1,13 +1,13 @@
 <?php
 
-namespace Auctane\Api\Test\Utilities;
+namespace Auctane\Api\Tests\Utilities;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
-use Auctane\Api\Test\Mock\Framework\ObjectManager;
-use Auctane\Api\Test\Mock\Config\ScopeConfig;
-use Auctane\Api\Test\Mock\Store\StoreManager;
-use Auctane\Api\Test\Mock\Framework\JsonFactory;
+use Auctane\Api\Tests\Mock\Framework\ObjectManager;
+use Auctane\Api\Tests\Mock\Config\ScopeConfig;
+use Auctane\Api\Tests\Mock\Store\StoreManager;
+use Auctane\Api\Tests\Mock\Framework\JsonFactory;
 
 /**
  * Factory class for creating consistent mock objects for Magento dependencies

@@ -1,6 +1,6 @@
 <?php
 
-namespace Auctane\Api\Test\Mock\Config;
+namespace Auctane\Api\Tests\Mock\Config;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;

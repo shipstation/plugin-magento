@@ -1,11 +1,11 @@
 <?php
 
-namespace Tests\Utilities;
+namespace Auctane\Api\Tests\Utilities;
 
 use Auctane\Api\Model\OrderSourceAPI\Models\SalesOrderStatus;
-use Tests\Fixtures\Orders\OrderFixture;
-use Tests\Fixtures\Requests\RequestFixture;
-use Tests\Fixtures\Config\ConfigFixture;
+use Auctane\Api\Tests\Fixtures\Orders\OrderFixture;
+use Auctane\Api\Tests\Fixtures\Requests\RequestFixture;
+use Auctane\Api\Tests\Fixtures\Config\ConfigFixture;
 
 /**
  * Data provider utility class for generating parameterized test data

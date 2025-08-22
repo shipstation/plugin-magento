@@ -38,14 +38,14 @@
     - Create parameterized test data for different PHP versions and configurations
     - _Requirements: 5.1, 5.3_
 
-- [ ] 4. Implement exception testing suite
-  - [ ] 4.1 Create tests for ApiException base class
+- [x] 4. Implement exception testing suite
+  - [x] 4.1 Create tests for ApiException base class
     - Write unit tests for ApiException constructor and getHttpStatusCode method
     - Test exception message handling and inheritance from base Exception
     - Verify HTTP status code assignment and retrieval
     - _Requirements: 3.3, 5.3_
 
-  - [ ] 4.2 Test all custom exception subclasses
+  - [x] 4.2 Test all custom exception subclasses
     - Create tests for AuthenticationFailedException, AuthorizationException
     - Test BadRequestException, InvalidXmlException, NotFoundException
     - Verify each exception returns correct HTTP status codes

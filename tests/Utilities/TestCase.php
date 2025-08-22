@@ -1,6 +1,6 @@
 <?php
 
-namespace Auctane\Api\Test\Utilities;
+namespace Auctane\Api\Tests\Utilities;
 
 use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -12,14 +12,14 @@ use PHPUnit\Framework\MockObject\MockObject;
 abstract class TestCase extends PHPUnitTestCase
 {
     /**
-     * @var MockFactory
+     * @var MockFactory|null
      */
-    protected MockFactory $mockFactory;
+    protected ?MockFactory $mockFactory = null;
 
     /**
-     * @var DataProvider
+     * @var DataProvider|null
      */
-    protected DataProvider $dataProvider;
+    protected ?DataProvider $dataProvider = null;
 
     /**
      * Set up test environment before each test
