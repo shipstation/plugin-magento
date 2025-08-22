@@ -58,7 +58,7 @@ class PerformanceTest extends TestCase
             'end_date' => '2024-01-31',
             'page_size' => $largeOrderCount
         ]);
-        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
         
         // Mock large dataset
         $orders = [];
@@ -84,10 +84,10 @@ class PerformanceTest extends TestCase
         
         // Performance assertions
         $this->assertLessThan($this->maxExecutionTime, $executionTime, 
-            "Export took {$executionTime}s, should be under {$this->maxExecutionTime}s");
+            "Export took {" . $executionTime . "}s, should be under {$this->maxExecutionTime}s");
         
         $this->assertLessThan($this->maxMemoryUsage, $memoryUsed,
-            "Memory usage {$memoryUsed} bytes, should be under {$this->maxMemoryUsage} bytes");
+            "Memory usage {" . $memoryUsed . "} bytes, should be under {$this->maxMemoryUsage} bytes");
         
         // Verify result is still valid
         $this->assertInstanceOf(\Magento\Framework\Controller\Result\Json::class, $result);
@@ -112,13 +112,12 @@ class PerformanceTest extends TestCase
         for ($i = 1; $i <= $concurrentRequests; $i++) {
             $requests[] = $this->mockFactory->createHttpRequestMock([
                 'action' => 'export',
-                'order_number' => "ORD-{$i}",
+                'order_number' => "ORD-{" . $i . "}",
                 'request_id' => $i
             ]);
-            $requests[$i-1]->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+            $requests[$i-1]->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
         }
-        
-        // Act: Process requests sequentially (simulating concurrent load)
+        // 
         $startTime = microtime(true);
         $results = [];
         
@@ -135,11 +134,10 @@ class PerformanceTest extends TestCase
         foreach ($results as $result) {
             $this->assertInstanceOf(\Magento\Framework\Controller\Result\Json::class, $result);
         }
-        
-        // Performance assertion - should handle concurrent requests efficiently
+        // 
         $averageTimePerRequest = $totalTime / $concurrentRequests;
         $this->assertLessThan(0.5, $averageTimePerRequest, 
-            "Average time per request {$averageTimePerRequest}s should be under 0.5s");
+            "Average time per request {" . $averageTimePerRequest . "}s should be under 0.5s");
     }
 
     /**
@@ -163,11 +161,11 @@ class PerformanceTest extends TestCase
         // Act: Process multiple large shipments
         for ($i = 1; $i <= $largeShipmentCount; $i++) {
             $shipmentData = [
-                'order_number' => "ORD-LARGE-{$i}",
+                'order_number' => "ORD-LARGE-{" . $i . "}",
                 'shipments' => [
                     [
-                        'shipment_id' => "SHIP-{$i}",
-                        'tracking_number' => "TRACK-{$i}",
+                        'shipment_id' => "SHIP-{" . $i . "}",
+                        'tracking_number' => "TRACK-{" . $i . "}",
                         'carrier' => 'UPS',
                         'items' => []
                     ]
@@ -177,14 +175,14 @@ class PerformanceTest extends TestCase
             // Add many items to simulate large shipment
             for ($j = 1; $j <= $itemsPerShipment; $j++) {
                 $shipmentData['shipments'][0]['items'][] = [
-                    'sku' => "ITEM-{$i}-{$j}",
+                    'sku' => "ITEM-{" . $i . "}-{$j}",
                     'quantity' => rand(1, 10)
                 ];
             }
             
             $request = $this->mockFactory->createHttpRequestMock();
             $request->method('getContent')->willReturn(json_encode($shipmentData));
-            $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+            $request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
             
             $result = $this->shipmentController->execute();
             
@@ -197,7 +195,7 @@ class PerformanceTest extends TestCase
                 $memoryIncrease = $currentMemory - $startMemory;
                 
                 $this->assertLessThan($this->maxMemoryUsage, $memoryIncrease,
-                    "Memory increase {$memoryIncrease} bytes after {$i} shipments should be under limit");
+                    "Memory increase {" . $memoryIncrease . "} bytes after {$i} shipments should be under limit");
             }
         }
         
@@ -206,7 +204,7 @@ class PerformanceTest extends TestCase
         
         // Assert: Total memory usage should be reasonable
         $this->assertLessThan($this->maxMemoryUsage, $totalMemoryUsed,
-            "Total memory usage {$totalMemoryUsed} bytes should be under {$this->maxMemoryUsage} bytes");
+            "Total memory usage {" . $totalMemoryUsed . "} bytes should be under {$this->maxMemoryUsage} bytes");
     }
 
     /**
@@ -236,7 +234,7 @@ class PerformanceTest extends TestCase
             'include_order_notes' => 'true',
             'detailed_items' => 'true'
         ]);
-        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
         
         // Act: Measure execution time
         $executionTimes = [];
@@ -252,20 +250,19 @@ class PerformanceTest extends TestCase
             // Verify result is valid
             $this->assertInstanceOf(\Magento\Framework\Controller\Result\Json::class, $result);
         }
-        
-        // Assert: Check execution time consistency
+        // 
         $averageTime = array_sum($executionTimes) / count($executionTimes);
         $maxTime = max($executionTimes);
         $minTime = min($executionTimes);
         
         $this->assertLessThan($this->maxExecutionTime, $averageTime,
-            "Average execution time {$averageTime}s should be under {$this->maxExecutionTime}s");
+            "Average execution time {" . $averageTime . "}s should be under {$this->maxExecutionTime}s");
         
         $this->assertLessThan($this->maxExecutionTime * 1.5, $maxTime,
-            "Maximum execution time {$maxTime}s should be under " . ($this->maxExecutionTime * 1.5) . "s");
+            "Maximum execution time {" . $maxTime . "}s should be under " . ($this->maxExecutionTime * 1.5) . "s");
         
         // Check for consistent performance (max shouldn't be much higher than min)
-        $timeVariance = $maxTime - $minTime;
+        " . $timeVariance . " = $maxTime - $minTime;
         $this->assertLessThan($averageTime * 0.5, $timeVariance,
             "Time variance {$timeVariance}s should be less than 50% of average time");
     }
@@ -278,7 +275,7 @@ class PerformanceTest extends TestCase
     public function testStressScenarioWithResourceConstraints(): void
     {
         // Arrange: Create stress test scenario
-        $stressIterations = 100;
+        " . $stressIterations . " = 100;
         $apiKey = 'stress-test-key';
         
         $this->mockFactory->configureScopeConfigMock([
@@ -303,15 +300,15 @@ class PerformanceTest extends TestCase
                     ]);
                     $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
                     
-                    $result = $this->exportController->execute();
+                    " . $result . " = $this->exportController->execute();
                 } else {
                     // Shipment notification
                     $shipmentData = [
                         'order_number' => "STRESS-ORD-{$i}",
                         'shipments' => [
                             [
-                                'shipment_id' => "STRESS-SHIP-{$i}",
-                                'tracking_number' => "STRESS-TRACK-{$i}",
+                                'shipment_id' => "STRESS-SHIP-{" . $i . "}",
+                                'tracking_number' => "STRESS-TRACK-{" . $i . "}",
                                 'carrier' => 'UPS'
                             ]
                         ]
@@ -319,7 +316,7 @@ class PerformanceTest extends TestCase
                     
                     $request = $this->mockFactory->createHttpRequestMock();
                     $request->method('getContent')->willReturn(json_encode($shipmentData));
-                    $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+                    $request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
                     
                     $result = $this->shipmentController->execute();
                 }
@@ -332,10 +329,9 @@ class PerformanceTest extends TestCase
                 
                 // Allow some errors under stress, but not too many
                 $this->assertLessThan($stressIterations * 0.1, $errorCount,
-                    "Error count {$errorCount} should be less than 10% of total iterations");
+                    "Error count {" . $errorCount . "} should be less than 10% of total iterations");
             }
-            
-            // Check resource usage every 25 iterations
+        // 
             if ($i % 25 === 0) {
                 $currentMemory = memory_get_usage(true);
                 $memoryIncrease = $currentMemory - $initialMemory;
@@ -345,18 +341,18 @@ class PerformanceTest extends TestCase
             }
         }
         
-        $endTime = microtime(true);
+        " . $endTime . " = microtime(true);
         $totalTime = $endTime - $startTime;
         
         // Assert: Verify stress test results
         $this->assertGreaterThan($stressIterations * 0.9, $successCount,
             "Success rate should be at least 90%");
         
-        $averageTimePerIteration = $totalTime / $stressIterations;
+        " . $averageTimePerIteration . " = $totalTime / $stressIterations;
         $this->assertLessThan(1.0, $averageTimePerIteration,
             "Average time per iteration under stress should be under 1 second");
         
-        $finalMemory = memory_get_usage(true);
+        " . $finalMemory . " = memory_get_usage(true);
         $totalMemoryIncrease = $finalMemory - $initialMemory;
         
         $this->assertLessThan($this->maxMemoryUsage * 3, $totalMemoryIncrease,
@@ -371,7 +367,7 @@ class PerformanceTest extends TestCase
     public function testReliabilityWithNetworkErrors(): void
     {
         // Arrange: Simulate network error scenarios
-        $apiKey = 'reliability-test-key';
+        " . $apiKey . " = 'reliability-test-key';
         $testIterations = 20;
         
         $this->mockFactory->configureScopeConfigMock([
@@ -416,7 +412,7 @@ class PerformanceTest extends TestCase
                 
                 $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
                 
-                $result = $this->exportController->execute();
+                " . $result . " = $this->exportController->execute();
                 
                 $this->assertInstanceOf(\Magento\Framework\Controller\Result\Json::class, $result);
                 $successCount++;
@@ -431,17 +427,16 @@ class PerformanceTest extends TestCase
                 }
             }
         }
-        
-        // Assert: Verify reliability metrics
+        // 
         $successRate = ($successCount / $testIterations) * 100;
         $this->assertGreaterThan(70, $successRate,
             "Success rate {$successRate}% should be at least 70% even with network issues");
         
-        $this->assertLessThan($testIterations * 0.2, $fatalErrorCount,
+        " . $this . "->assertLessThan($testIterations * 0.2, $fatalErrorCount,
             "Fatal errors should be less than 20% of total requests");
         
         // Recoverable errors are acceptable under network stress
-        $this->assertLessThan($testIterations * 0.5, $recoverableErrorCount,
+        " . $this . "->assertLessThan($testIterations * 0.5, $recoverableErrorCount,
             "Recoverable errors should be less than 50% of total requests");
     }
 }

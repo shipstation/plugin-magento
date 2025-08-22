@@ -74,7 +74,7 @@ class ComplexWorkflowTest extends TestCase
             'page' => '1',
             'include_custom_fields' => 'true'
         ]);
-        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
         
         // Mock successful authorization
         $this->mockFactory->configureScopeConfigMock([
@@ -113,8 +113,7 @@ class ComplexWorkflowTest extends TestCase
             $this->assertArrayHasKey('price', $item);
             $this->assertArrayHasKey('weight', $item);
         }
-        
-        // Verify custom fields
+        // 
         $this->assertArrayHasKey('custom_field1', $exportedOrder['custom_fields']);
         $this->assertArrayHasKey('custom_field2', $exportedOrder['custom_fields']);
     }
@@ -165,7 +164,7 @@ class ComplexWorkflowTest extends TestCase
             'action' => 'export',
             'order_number' => 'INT-000001'
         ]);
-        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
         
         // Mock authorization and order data
         $this->mockFactory->configureScopeConfigMock([
@@ -245,7 +244,7 @@ class ComplexWorkflowTest extends TestCase
         
         $request = $this->mockFactory->createHttpRequestMock();
         $request->method('getContent')->willReturn(json_encode($complexShipment));
-        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
         
         // Mock authorization
         $this->mockFactory->configureScopeConfigMock([
@@ -302,7 +301,7 @@ class ComplexWorkflowTest extends TestCase
         
         $request = $this->mockFactory->createHttpRequestMock();
         $request->method('getContent')->willReturn(json_encode($partialShipment));
-        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
         
         // Mock authorization
         $this->mockFactory->configureScopeConfigMock([
@@ -343,7 +342,7 @@ class ComplexWorkflowTest extends TestCase
             'action' => 'export',
             'order_number' => $orderNumber
         ]);
-        $exportRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+        $exportRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
         
         $this->mockFactory->configureScopeConfigMock([
             'auctane_api/general/api_key' => $apiKey
@@ -377,7 +376,7 @@ class ComplexWorkflowTest extends TestCase
         
         $shipmentRequest = $this->mockFactory->createHttpRequestMock();
         $shipmentRequest->method('getContent')->willReturn(json_encode($shipmentData));
-        $shipmentRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+        $shipmentRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
         
         $shipmentResult = $this->shipmentController->execute();
         
@@ -416,7 +415,7 @@ class ComplexWorkflowTest extends TestCase
             'order_number' => 'PROB-001',
             'skip_invalid_items' => 'true'
         ]);
-        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
         
         $this->mockFactory->configureScopeConfigMock([
             'auctane_api/general/api_key' => $apiKey
@@ -442,8 +441,7 @@ class ComplexWorkflowTest extends TestCase
             
             $this->assertCount(2, $validItems, 'Should have 2 valid items after filtering');
         }
-        
-        // Verify warnings are included
+        // 
         $this->assertArrayHasKey('warnings', $responseData);
         $this->assertNotEmpty($responseData['warnings']);
         $this->assertStringContains('invalid item', strtolower($responseData['warnings'][0]));

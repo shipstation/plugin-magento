@@ -83,7 +83,8 @@ class ExportTest extends TestCase
         $orderCollectionMock->method('addAttributeToFilter')->willReturnSelf();
         $orderCollectionMock->method('setPage')->willReturnSelf();
         $orderCollectionMock->method('getLastPageNumber')->willReturn(1);
-        $orderCollectionMock->method('getIterator')->willReturn(new \ArrayIterator([]));
+        $arrayIterator = new ArrayIterator([]);
+        $orderCollectionMock->method('getIterator')->willReturn($arrayIterator);
         
         $this->orderCollectionFactoryMock
             ->method('create')
@@ -152,7 +153,8 @@ class ExportTest extends TestCase
         $orderCollectionMock->method('addAttributeToFilter')->willReturnSelf();
         $orderCollectionMock->method('setPage')->willReturnSelf();
         $orderCollectionMock->method('getLastPageNumber')->willReturn(1);
-        $orderCollectionMock->method('getIterator')->willReturn(new \ArrayIterator([]));
+        $arrayIterator = new ArrayIterator([]);
+        $orderCollectionMock->method('getIterator')->willReturn($arrayIterator);
         
         $this->orderCollectionFactoryMock
             ->method('create')
@@ -182,7 +184,8 @@ class ExportTest extends TestCase
         $orderCollectionMock->method('addAttributeToFilter')->willReturnSelf();
         $orderCollectionMock->method('setPage')->willReturnSelf();
         $orderCollectionMock->method('getLastPageNumber')->willReturn(1);
-        $orderCollectionMock->method('getIterator')->willReturn(new \ArrayIterator([]));
+        $arrayIterator = new ArrayIterator([]);
+        $orderCollectionMock->method('getIterator')->willReturn($arrayIterator);
         
         $this->orderCollectionFactoryMock
             ->method('create')
@@ -213,7 +216,8 @@ class ExportTest extends TestCase
         $orderCollectionMock->method('addAttributeToFilter')->willReturnSelf();
         $orderCollectionMock->method('setPage')->willReturnSelf();
         $orderCollectionMock->method('getLastPageNumber')->willReturn(3);
-        $orderCollectionMock->method('getIterator')->willReturn(new \ArrayIterator([]));
+        $arrayIterator = new ArrayIterator([]);
+        $orderCollectionMock->method('getIterator')->willReturn($arrayIterator);
         
         $this->orderCollectionFactoryMock
             ->method('create')
@@ -273,7 +277,8 @@ class ExportTest extends TestCase
         $orderCollectionMock->method('addAttributeToFilter')->willReturnSelf();
         $orderCollectionMock->method('setPage')->willReturnSelf();
         $orderCollectionMock->method('getLastPageNumber')->willReturn(1);
-        $orderCollectionMock->method('getIterator')->willReturn(new \ArrayIterator([$orderMock]));
+        $arrayIterator = new ArrayIterator([$orderMock]);
+        $orderCollectionMock->method('getIterator')->willReturn($arrayIterator);
         
         $this->orderCollectionFactoryMock
             ->method('create')
@@ -307,7 +312,8 @@ class ExportTest extends TestCase
         $orderCollectionMock->method('addAttributeToFilter')->willReturnSelf();
         $orderCollectionMock->method('setPage')->willReturnSelf();
         $orderCollectionMock->method('getLastPageNumber')->willReturn(1);
-        $orderCollectionMock->method('getIterator')->willReturn(new \ArrayIterator([]));
+        $arrayIterator = new ArrayIterator([]);
+        $orderCollectionMock->method('getIterator')->willReturn($arrayIterator);
         
         $this->orderCollectionFactoryMock
             ->method('create')
@@ -337,7 +343,8 @@ class ExportTest extends TestCase
         $orderCollectionMock->method('addAttributeToFilter')->willReturnSelf();
         $orderCollectionMock->method('setPage')->willReturnSelf();
         $orderCollectionMock->method('getLastPageNumber')->willReturn(1);
-        $orderCollectionMock->method('getIterator')->willReturn(new \ArrayIterator([]));
+        $arrayIterator = new ArrayIterator([]);
+        $orderCollectionMock->method('getIterator')->willReturn($arrayIterator);
         
         $this->orderCollectionFactoryMock
             ->method('create')

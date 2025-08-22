@@ -283,7 +283,7 @@ class BaseAuthorizedControllerTest extends TestCase
             $result = $this->baseAuthorizedController->getIsAuthorized();
 
             // Assert
-            $this->assertEquals($authResult, $result, "Failed for header: $header");
+            $this->assertEquals($authResult, $result, "Failed for header: " . $header);
         }
     }
 

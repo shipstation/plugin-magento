@@ -70,8 +70,7 @@ class BaseControllerTest extends TestCase
             {
                 return $this->isAuthorized;
             }
-            
-            // Expose protected method for testing
+        // 
             public function testGetIsAuthorized(): bool
             {
                 return $this->getIsAuthorized();

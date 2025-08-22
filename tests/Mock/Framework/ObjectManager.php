@@ -72,8 +72,7 @@ class ObjectManager
             $this->instances[$type] = $this->services[$type];
             return $this->instances[$type];
         }
-
-        // Create a generic mock for unknown services
+        // 
         $this->instances[$type] = $this->testCase->createMock($type);
         return $this->instances[$type];
     }
@@ -90,8 +89,7 @@ class ObjectManager
         if (isset($this->services[$type])) {
             return $this->services[$type];
         }
-
-        // Create a generic mock for unknown services
+        // 
         return $this->testCase->createMock($type);
     }
 

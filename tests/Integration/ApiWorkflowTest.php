@@ -84,7 +84,7 @@ class ApiWorkflowTest extends TestCase
             'end_date' => '2024-01-31',
             'page' => '1'
         ]);
-        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
         
         // Mock successful authorization
         $this->mockFactory->configureScopeConfigMock([
@@ -117,7 +117,7 @@ class ApiWorkflowTest extends TestCase
         
         $request = $this->mockFactory->createHttpRequestMock();
         $request->method('getContent')->willReturn(json_encode($shipmentData));
-        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
         
         // Mock successful authorization
         $this->mockFactory->configureScopeConfigMock([
@@ -155,14 +155,14 @@ class ApiWorkflowTest extends TestCase
         // Step 1: Fetch current inventory
         $fetchRequest = $this->mockFactory->createHttpRequestMock();
         $fetchRequest->method('getContent')->willReturn(json_encode($inventoryFetchData));
-        $fetchRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+        $fetchRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
         
         $fetchResult = $this->inventoryFetchController->execute();
         
         // Step 2: Push updated inventory
         $pushRequest = $this->mockFactory->createHttpRequestMock();
         $pushRequest->method('getContent')->willReturn(json_encode($inventoryPushData));
-        $pushRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+        $pushRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
         
         $pushResult = $this->inventoryPushController->execute();
         
@@ -191,7 +191,7 @@ class ApiWorkflowTest extends TestCase
         $request = $this->mockFactory->createHttpRequestMock([
             'action' => 'export'
         ]);
-        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$invalidApiKey}");
+        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $invalidApiKey . "}");
         
         // Mock failed authorization
         $this->mockFactory->configureScopeConfigMock([
@@ -223,7 +223,7 @@ class ApiWorkflowTest extends TestCase
             'action' => 'export',
             'order_number' => $complexOrder['increment_id']
         ]);
-        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
         
         // Mock successful authorization and complex order data
         $this->mockFactory->configureScopeConfigMock([

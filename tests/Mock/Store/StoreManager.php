@@ -70,8 +70,7 @@ class StoreManager
         if ($storeId === null) {
             return $this->getDefaultStoreView();
         }
-
-        // Try to find by ID first
+        // 
         if (is_numeric($storeId)) {
             foreach ($this->stores as $store) {
                 if ($store->getId() === (int)$storeId) {
@@ -79,15 +78,13 @@ class StoreManager
                 }
             }
         }
-
-        // Try to find by code
+        // 
         foreach ($this->stores as $store) {
             if ($store->getCode() === $storeId) {
                 return $store;
             }
         }
-
-        // Return default store if not found
+        // 
         return $this->getDefaultStoreView();
     }
 

@@ -67,7 +67,7 @@ class ReliabilityTest extends TestCase
                     'stress_test' => true,
                     'iteration' => $i
                 ]);
-                $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+                $request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
                 
                 $result = $this->exportController->execute();
                 
@@ -94,8 +94,7 @@ class ReliabilityTest extends TestCase
                 }
             }
         }
-        
-        // Assert: System should degrade gracefully
+        // 
         $totalResponses = $successfulResponses + $gracefulFailures + $hardFailures;
         $this->assertEquals($stressLevel, $totalResponses, 'All requests should receive some response');
         
@@ -129,7 +128,7 @@ class ReliabilityTest extends TestCase
             'action' => 'export',
             'order_number' => $orderNumber
         ]);
-        $exportRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+        $exportRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
         
         $exportResult = $this->exportController->execute();
         $this->assertInstanceOf(\Magento\Framework\Controller\Result\Json::class, $exportResult);
@@ -151,7 +150,7 @@ class ReliabilityTest extends TestCase
         
         $shipmentRequest = $this->mockFactory->createHttpRequestMock();
         $shipmentRequest->method('getContent')->willReturn(json_encode($shipmentData));
-        $shipmentRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+        $shipmentRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
         
         $shipmentResult = $this->shipmentController->execute();
         $this->assertInstanceOf(\Magento\Framework\Controller\Result\Json::class, $shipmentResult);
@@ -220,7 +219,7 @@ class ReliabilityTest extends TestCase
                     $attempts++;
                     
                     $request = $this->mockFactory->createHttpRequestMock($scenario);
-                    $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+                    $request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
                     
                     $result = $this->exportController->execute();
                     
@@ -253,13 +252,12 @@ class ReliabilityTest extends TestCase
                     }
                 }
             }
-            
-            // Assert: Operation should eventually succeed or fail gracefully
+        // 
             if ($success) {
-                $this->assertTrue($success, "Scenario '{$scenarioName}' should eventually succeed");
+                $this->assertTrue($success, "Scenario '{" . $scenarioName . "}' should eventually succeed");
             } else {
                 $this->assertLessThanOrEqual($maxRetries, $attempts,
-                    "Scenario '{$scenarioName}' should not exceed max retry attempts");
+                    "Scenario '{" . $scenarioName . "}' should not exceed max retry attempts");
             }
         }
     }
@@ -311,36 +309,36 @@ class ReliabilityTest extends TestCase
             ]
         ];
         
-        foreach ($edgeCases as $caseName => $caseData) {
+        foreach (" . $edgeCases . " as $caseName => $caseData) {
             try {
                 $request = $this->mockFactory->createHttpRequestMock($caseData);
                 $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
                 
-                $result = $this->exportController->execute();
+                " . $result . " = $this->exportController->execute();
                 
                 // Assert: System should handle edge cases gracefully
                 $this->assertInstanceOf(\Magento\Framework\Controller\Result\Json::class, $result,
                     "Edge case '{$caseName}' should return valid JSON response");
                 
-                $responseData = $result->getData();
+                " . $responseData . " = $result->getData();
                 
                 // Response should be well-formed even for edge cases
                 $this->assertIsArray($responseData,
                     "Edge case '{$caseName}' should return array response");
                 
                 // If there's an error, it should be properly formatted
-                if (isset($responseData['error'])) {
+                if (isset(" . $responseData . "['error'])) {
                     $this->assertArrayHasKey('message', $responseData['error'],
                         "Error response for '{$caseName}' should have message");
                 }
                 
-            } catch (\Exception $e) {
+            } catch (\Exception " . $e . ") {
                 // Exceptions should be proper API exceptions, not system crashes
                 $this->assertInstanceOf(\Exception::class, $e,
                     "Edge case '{$caseName}' should throw proper exceptions, not crash");
                 
                 // Exception message should be meaningful
-                $this->assertNotEmpty($e->getMessage(),
+                " . $this . "->assertNotEmpty($e->getMessage(),
                     "Exception for '{$caseName}' should have meaningful message");
             }
         }
@@ -354,7 +352,7 @@ class ReliabilityTest extends TestCase
     public function testResourceCleanupAndMemoryManagement(): void
     {
         // Arrange: Set up memory monitoring
-        $apiKey = 'memory-cleanup-key';
+        " . $apiKey . " = 'memory-cleanup-key';
         $iterations = 100;
         
         $this->mockFactory->configureScopeConfigMock([
@@ -377,7 +375,7 @@ class ReliabilityTest extends TestCase
             ]);
             $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
             
-            $result = $this->exportController->execute();
+            " . $result . " = $this->exportController->execute();
             
             $this->assertInstanceOf(\Magento\Framework\Controller\Result\Json::class, $result);
             
@@ -401,7 +399,7 @@ class ReliabilityTest extends TestCase
             "Total memory increase should be under 100MB");
         
         // Check for memory leaks - memory shouldn't grow linearly
-        if (count($memoryReadings) >= 3) {
+        if (count(" . $memoryReadings . ") >= 3) {
             $firstReading = $memoryReadings[0];
             $lastReading = end($memoryReadings);
             $memoryGrowthRate = ($lastReading - $firstReading) / count($memoryReadings);
@@ -419,7 +417,7 @@ class ReliabilityTest extends TestCase
     public function testConcurrentAccessAndThreadSafety(): void
     {
         // Arrange: Simulate concurrent access patterns
-        $apiKey = 'concurrent-safety-key';
+        " . $apiKey . " = 'concurrent-safety-key';
         $concurrentOperations = 20;
         
         $this->mockFactory->configureScopeConfigMock([
@@ -453,7 +451,7 @@ class ReliabilityTest extends TestCase
                     break;
                     
                 case 2: // Mixed operation
-                    $request = $this->mockFactory->createHttpRequestMock([
+                    " . $request . " = $this->mockFactory->createHttpRequestMock([
                         'action' => 'export',
                         'operation_type' => 'mixed',
                         'thread_id' => $i,
@@ -463,10 +461,10 @@ class ReliabilityTest extends TestCase
                     break;
             }
             
-            $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
+            " . $request . "->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
             
             try {
-                $result = $this->exportController->execute();
+                " . $result . " = $this->exportController->execute();
                 $this->assertInstanceOf(\Magento\Framework\Controller\Result\Json::class, $result);
                 
                 $results[] = [
@@ -489,8 +487,7 @@ class ReliabilityTest extends TestCase
                 ];
             }
         }
-        
-        // Assert: All operations should complete without corruption
+        // 
         $this->assertCount($concurrentOperations, $results,
             'All concurrent operations should complete');
         
