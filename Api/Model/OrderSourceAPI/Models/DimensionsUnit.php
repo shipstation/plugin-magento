@@ -1,4 +1,5 @@
 <?php
+
 namespace Auctane\Api\Model\OrderSourceAPI\Models;
 
 /**
@@ -6,6 +7,6 @@ namespace Auctane\Api\Model\OrderSourceAPI\Models;
  */
 enum DimensionsUnit: string
 {
-    case CENTIMETER = "Centimeter";
-    case INCH = "Inch";
+    case CENTIMETER = 'Centimeter';
+    case INCH = 'Inch';
 }

@@ -5,6 +5,8 @@
  */
 
 if (!function_exists('__')) {
+
+
     /**
      * Mock implementation of Magento's translation function
      *
@@ -16,4 +18,6 @@ if (!function_exists('__')) {
     {
         return new \Magento\Framework\Phrase($text, $arguments);
     }
+
+
 }

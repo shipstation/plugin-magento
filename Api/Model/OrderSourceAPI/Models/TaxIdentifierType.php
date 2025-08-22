@@ -1,4 +1,5 @@
 <?php
+
 namespace Auctane\Api\Model\OrderSourceAPI\Models;
 
 enum TaxIdentifierType: string

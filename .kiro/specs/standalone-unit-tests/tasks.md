@@ -129,14 +129,14 @@
     - Configure code coverage artifact upload
     - _Requirements: 2.2, 2.3, 6.1, 6.2, 6.3_
 
-- [ ] 9. Create Composer scripts and local development tools
-  - [ ] 9.1 Add Composer test scripts
+- [x] 9. Create Composer scripts and local development tools
+  - [x] 9.1 Add Composer test scripts
     - Create "test" script in composer.json for running PHPUnit
     - Add "test-coverage" script for generating coverage reports
     - Create "quality" script combining PHPStan and CodeSniffer checks
     - _Requirements: 1.1, 1.3_
 
-  - [ ] 9.2 Create development helper scripts
+  - [x] 9.2 Create development helper scripts
     - Add "test-watch" script for continuous testing during development
     - Create "fix-cs" script for automatic coding standards fixes
     - Add "analyze" script for comprehensive code analysis

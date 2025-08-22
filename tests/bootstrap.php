@@ -1,7 +1,8 @@
 <?php
+
 /**
  * PHPUnit bootstrap file for Auctane_Api module tests
- * 
+ *
  * This file initializes the test environment and sets up autoloading
  * for running tests without a full Magento installation.
  */

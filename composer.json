@@ -51,6 +51,7 @@
             "@test",
             "@quality"
         ],
+        "test-watch": "phpunit --testdox --colors=always",
         "install-coverage": "echo 'To enable code coverage, install Xdebug or PCOV:\\n  - Xdebug: https://xdebug.org/docs/install\\n  - PCOV: composer require --dev pcov/clobber && pecl install pcov'"
     },
     "config": {
