@@ -25,14 +25,14 @@
     - Create JsonFactory and Json result mocks for controller testing
     - _Requirements: 4.1, 4.3_
 
-- [ ] 3. Create test fixtures and data providers
-  - [ ] 3.1 Implement test data fixtures for API requests and responses
+- [x] 3. Create test fixtures and data providers
+  - [x] 3.1 Implement test data fixtures for API requests and responses
     - Create OrderFixture class with sample order data generation methods
     - Implement RequestFixture class for API request/response samples
     - Add ConfigFixture class for store configuration test data
     - _Requirements: 5.1, 5.2_
 
-  - [ ] 3.2 Create DataProvider utility class for parameterized tests
+  - [x] 3.2 Create DataProvider utility class for parameterized tests
     - Implement DataProvider class with methods for generating test scenarios
     - Add methods for authentication test cases and error scenarios
     - Create parameterized test data for different PHP versions and configurations
