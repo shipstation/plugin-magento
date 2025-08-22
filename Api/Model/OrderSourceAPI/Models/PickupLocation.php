@@ -14,7 +14,7 @@ class PickupLocation
      *
      * @param array|null $data
      */
-    public function __construct(array $data = null)
+    public function __construct(?array $data = null)
     {
         if ($data !== null) {
             $this->carrier_id = $data['carrier_id'] ?? null;

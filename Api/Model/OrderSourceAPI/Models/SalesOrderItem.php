@@ -37,7 +37,7 @@ class SalesOrderItem
     /**
      * @param array|null $data
      */
-    public function __construct(array $data = null)
+    public function __construct(?array $data = null)
     {
         if ($data) {
             $this->line_item_id = $data['line_item_id'] ?? null;

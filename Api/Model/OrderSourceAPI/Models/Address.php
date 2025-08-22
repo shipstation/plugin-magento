@@ -46,7 +46,7 @@ class Address
      * Address constructor.
      * @param array|null $data
      */
-    public function __construct(array $data = null)
+    public function __construct(?array $data = null)
     {
         if ($data !== null) {
             $this->name = $data['name'] ?? null;

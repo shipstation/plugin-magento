@@ -29,7 +29,7 @@ class InventoryItemError
      *
      * @param array|null $data JSON data to initialize properties
      */
-    public function __construct(array $data = null)
+    public function __construct(?array $data = null)
     {
         if ($data) {
             $this->integration_inventory_item_id = $data['integration_inventory_item_id'] ?? '';

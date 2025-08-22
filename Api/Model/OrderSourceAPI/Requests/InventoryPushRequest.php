@@ -28,7 +28,7 @@ class InventoryPushRequest extends RequestBase
      *
      * @param array|null $data JSON payload as an associative array.
      */
-    public function __construct(array $data = null)
+    public function __construct(?array $data = null)
     {
         if ($data) {
             $this->items = [];
