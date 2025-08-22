@@ -47,43 +47,29 @@ class ConfigFixture
     public static function getMultiStoreConfig(): array
     {
         return [
-            // Default store (store_id = 0)
-            0 => [
-                'auctane_api/general/enabled' => '1',
-                'auctane_api/general/api_key' => 'default-api-key-12345',
-                'general/store_information/name' => 'Default Store'
+            'store1' => [
+                'api_key' => 'us-store-api-key-12345',
+                'enabled' => true,
+                'order_statuses' => 'processing,complete',
+                'store_name' => 'US Store',
+                'country' => 'US',
+                'currency' => 'USD'
             ],
-            // Store 1 - US Store
-            1 => [
-                'auctane_api/general/enabled' => '1',
-                'auctane_api/general/api_key' => 'us-store-api-key-12345',
-                'auctane_api/general/debug_mode' => '0',
-                'general/store_information/name' => 'US Store',
-                'general/store_information/merchant_country' => 'US',
-                'currency/options/default' => 'USD',
-                'shipping/origin/country_id' => 'US',
-                'shipping/origin/region_id' => '12',
-                'shipping/origin/postcode' => '90210',
-                'shipping/origin/city' => 'Los Angeles'
+            'store2' => [
+                'api_key' => 'eu-store-api-key-12345',
+                'enabled' => true,
+                'order_statuses' => 'processing,complete,shipped',
+                'store_name' => 'EU Store',
+                'country' => 'DE',
+                'currency' => 'EUR'
             ],
-            // Store 2 - EU Store
-            2 => [
-                'auctane_api/general/enabled' => '1',
-                'auctane_api/general/api_key' => 'eu-store-api-key-12345',
-                'auctane_api/general/debug_mode' => '1',
-                'general/store_information/name' => 'EU Store',
-                'general/store_information/merchant_country' => 'DE',
-                'currency/options/default' => 'EUR',
-                'shipping/origin/country_id' => 'DE',
-                'shipping/origin/region_id' => '91',
-                'shipping/origin/postcode' => '10115',
-                'shipping/origin/city' => 'Berlin'
-            ],
-            // Store 3 - Disabled Store
-            3 => [
-                'auctane_api/general/enabled' => '0',
-                'auctane_api/general/api_key' => 'disabled-store-api-key',
-                'general/store_information/name' => 'Disabled Store'
+            'store3' => [
+                'api_key' => 'disabled-store-api-key',
+                'enabled' => false,
+                'order_statuses' => 'processing',
+                'store_name' => 'Disabled Store',
+                'country' => 'US',
+                'currency' => 'USD'
             ]
         ];
     }

@@ -1,0 +1,63 @@
+{
+  "thresholds": {
+    "overall": 80.0,
+    "models": 80.0,
+    "controllers": 85.0,
+    "exceptions": 100.0,
+    "helpers": 75.0
+  },
+  "component_patterns": {
+    "models": "/Api\\/Model\\/.*\\.php$/",
+    "controllers": "/Api\\/Controller\\/.*\\.php$/",
+    "exceptions": "/Api\\/Exception\\/.*\\.php$/",
+    "helpers": "/Api\\/Helper\\/.*\\.php$/"
+  },
+  "exclusions": {
+    "files": [
+      "Api/registration.php",
+      "Api/composer.json"
+    ],
+    "directories": [
+      "Api/view/",
+      "Api/i18n/",
+      "Api/etc/"
+    ],
+    "patterns": [
+      "/.*\\.phtml$/",
+      "/.*\\.xml$/",
+      "/.*\\.csv$/"
+    ]
+  },
+  "environments": {
+    "development": {
+      "thresholds": {
+        "overall": 70.0,
+        "models": 70.0,
+        "controllers": 75.0,
+        "exceptions": 90.0
+      }
+    },
+    "staging": {
+      "thresholds": {
+        "overall": 75.0,
+        "models": 75.0,
+        "controllers": 80.0,
+        "exceptions": 95.0
+      }
+    },
+    "production": {
+      "thresholds": {
+        "overall": 80.0,
+        "models": 80.0,
+        "controllers": 85.0,
+        "exceptions": 100.0
+      }
+    }
+  },
+  "reporting": {
+    "formats": ["html", "xml", "clover", "text"],
+    "output_directory": "coverage/",
+    "fail_on_insufficient_coverage": true,
+    "generate_badges": true
+  }
+}

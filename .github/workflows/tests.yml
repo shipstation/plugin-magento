@@ -40,8 +40,11 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-suggest --no-interaction 
      
-      - name: Run PHPUnit tests
-        run: vendor/bin/phpunit --configuration phpunit.xml --coverage-clover coverage.xml
+      - name: Run PHPUnit tests with coverage
+        run: vendor/bin/phpunit --configuration phpunit.xml --coverage-clover coverage/clover.xml --coverage-html coverage/html --coverage-text
+      
+      - name: Validate code coverage thresholds
+        run: php scripts/validate-coverage.php coverage/clover.xml coverage/coverage-report.json
       
       - name: Run PHPStan static analysis
         run: vendor/bin/phpstan analyse --configuration phpstan.neon --no-progress
@@ -52,13 +55,51 @@ jobs:
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
-          file: ./coverage.xml
+          file: ./coverage/clover.xml
           flags: unittests
           name: codecov-umbrella
-          fail_ci_if_error: false
+          fail_ci_if_error: true
       
-      - name: Upload coverage artifact
+      - name: Upload coverage artifacts
         uses: actions/upload-artifact@v3
         with:
           name: coverage-report-php-${{ matrix.php-version }}
-          path: coverage.xml
+          path: |
+            coverage/
+            !coverage/html/
+        
+      - name: Upload coverage HTML report
+        uses: actions/upload-artifact@v3
+        if: matrix.php-version == '8.2'
+        with:
+          name: coverage-html-report
+          path: coverage/html/
+          
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request' && matrix.php-version == '8.2'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            if (fs.existsSync('coverage/coverage-report.json')) {
+              const coverage = JSON.parse(fs.readFileSync('coverage/coverage-report.json', 'utf8'));
+              const comment = `## Code Coverage Report
+              
+              **Overall Coverage:** ${coverage.overall_coverage}% (Threshold: ${coverage.thresholds.overall}%)
+              
+              **Component Coverage:**
+              - Models: ${coverage.component_coverage.models}% (Threshold: ${coverage.thresholds.models}%)
+              - Controllers: ${coverage.component_coverage.controllers}% (Threshold: ${coverage.thresholds.controllers}%)
+              - Exceptions: ${coverage.component_coverage.exceptions}% (Threshold: ${coverage.thresholds.exceptions}%)
+              
+              **Status:** ${coverage.status}
+              
+              Generated at: ${coverage.timestamp}`;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }

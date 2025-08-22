@@ -133,29 +133,49 @@ class OrderFixture
     {
         $order = self::createSampleOrder();
         
-        $order['notes'] = [
-            [
-                'type' => 'CustomerNote',
-                'text' => 'Please handle with care - fragile items',
-                'created_date_time' => '2024-01-15T09:15:00.000Z'
+        // Convert to Magento-style order format
+        $magentoOrder = [
+            'increment_id' => $order['order_number'],
+            'status' => 'processing',
+            'customer_firstname' => 'John',
+            'customer_lastname' => 'Doe',
+            'customer_email' => 'john.doe@example.com',
+            'billing_address' => [
+                'firstname' => 'John',
+                'lastname' => 'Doe',
+                'company' => 'Acme Corp',
+                'street' => '123 Main Street',
+                'city' => 'New York',
+                'region' => 'NY',
+                'postcode' => '10001',
+                'country_id' => 'US',
+                'telephone' => '+1-555-123-4567'
             ],
-            [
-                'type' => 'InternalNote',
-                'text' => 'Rush order - expedite processing',
-                'created_date_time' => '2024-01-15T09:30:00.000Z'
-            ]
+            'shipping_address' => [
+                'firstname' => 'John',
+                'lastname' => 'Doe',
+                'street' => '789 Customer St',
+                'city' => 'Chicago',
+                'region' => 'IL',
+                'postcode' => '60601',
+                'country_id' => 'US'
+            ],
+            'items' => [
+                [
+                    'sku' => 'TEST-SKU-001',
+                    'name' => 'Test Product',
+                    'quantity' => 2,
+                    'price' => 29.99,
+                    'weight' => 1.5
+                ]
+            ],
+            'custom_field1' => 'Custom Value 1',
+            'custom_field2' => 'Custom Value 2',
+            'customer_note' => 'Please handle with care - fragile items',
+            'gift_message' => 'Happy Birthday!'
         ];
 
-        $order['integration_context'] = json_encode([
-            'magento_store_id' => 1,
-            'customer_group_id' => 2,
-            'custom_attribute_1' => 'value1',
-            'custom_attribute_2' => 'value2'
-        ]);
-
-        $order['order_url'] = 'https://store.example.com/admin/sales/order/view/order_id/12345/';
-
-        return $order;
+        return $magentoOrder;
     }
 
     /**

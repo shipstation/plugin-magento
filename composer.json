@@ -52,6 +52,16 @@
             "@quality"
         ],
         "test-watch": "phpunit --testdox --colors=always",
+        "validate-coverage": "php scripts/validate-coverage.php coverage/clover.xml coverage/coverage-report.json",
+        "test-with-validation": [
+            "@test-coverage-xml",
+            "@validate-coverage"
+        ],
+        "coverage-report": [
+            "@test-coverage",
+            "@validate-coverage",
+            "echo 'Coverage report generated in coverage/html/index.html'"
+        ],
         "install-coverage": "echo 'To enable code coverage, install Xdebug or PCOV:\\n  - Xdebug: https://xdebug.org/docs/install\\n  - PCOV: composer require --dev pcov/clobber && pecl install pcov'"
     },
     "config": {

@@ -15,6 +15,12 @@
         <testsuite name="Unit Tests">
             <directory>tests/Unit</directory>
         </testsuite>
+        <testsuite name="Integration Tests">
+            <directory>tests/Integration</directory>
+        </testsuite>
+        <testsuite name="Coverage Validation">
+            <directory>tests/Coverage</directory>
+        </testsuite>
         <testsuite name="Controllers">
             <directory>tests/Unit/Controller</directory>
         </testsuite>
@@ -49,6 +55,11 @@
             <crap4j outputFile="coverage/crap4j.xml" threshold="30"/>
             <text outputFile="coverage/coverage.txt" showUncoveredFiles="false" showOnlySummary="true"/>
         </report>
+        <thresholds>
+            <coverage minFromEntryPoint="80" minFromClass="80"/>
+            <line minFromEntryPoint="80" minFromClass="80"/>
+            <method minFromEntryPoint="80" minFromClass="80"/>
+        </thresholds>
     </coverage>
 
     <logging>

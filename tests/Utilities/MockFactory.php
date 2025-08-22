@@ -211,6 +211,196 @@ class MockFactory
     }
 
     /**
+     * Create a mock Context for controllers
+     *
+     * @return MockObject
+     */
+    public function createContextMock(): MockObject
+    {
+        $mock = $this->createMock('Magento\Framework\App\Action\Context');
+        
+        $request = $this->createHttpRequestMock();
+        $response = $this->createMock('Magento\Framework\App\Response\Http');
+        $objectManager = $this->createObjectManagerMock();
+        
+        $mock->method('getRequest')->willReturn($request);
+        $mock->method('getResponse')->willReturn($response);
+        $mock->method('getObjectManager')->willReturn($objectManager);
+        
+        return $mock;
+    }
+
+    /**
+     * Create a mock Authorization service
+     *
+     * @param bool $isAuthorized Default authorization result
+     * @return MockObject
+     */
+    public function createAuthorizationMock(bool $isAuthorized = true): MockObject
+    {
+        $mock = $this->createMock('Auctane\Api\Model\Authorization');
+        
+        $mock->method('isAuthorized')
+            ->willReturn($isAuthorized);
+            
+        return $mock;
+    }
+
+    /**
+     * Create a mock Export action
+     *
+     * @return MockObject
+     */
+    public function createExportActionMock(): MockObject
+    {
+        $mock = $this->createMock('Auctane\Api\Model\Action\Export');
+        
+        $mock->method('execute')
+            ->willReturn([
+                'orders' => [],
+                'page' => 1,
+                'pages' => 1,
+                'total' => 0
+            ]);
+            
+        return $mock;
+    }
+
+    /**
+     * Create a mock ShipNotify action
+     *
+     * @return MockObject
+     */
+    public function createShipNotifyActionMock(): MockObject
+    {
+        $mock = $this->createMock('Auctane\Api\Model\Action\ShipNotify');
+        
+        $mock->method('execute')
+            ->willReturn([
+                'success' => true,
+                'shipments_processed' => 1,
+                'packages_processed' => 1
+            ]);
+            
+        return $mock;
+    }
+
+    /**
+     * Create a mock InventoryFetch action
+     *
+     * @return MockObject
+     */
+    public function createInventoryFetchActionMock(): MockObject
+    {
+        $mock = $this->createMock('Auctane\Api\Model\Action\InventoryFetch');
+        
+        $mock->method('execute')
+            ->willReturn([
+                'products' => [],
+                'total' => 0
+            ]);
+            
+        return $mock;
+    }
+
+    /**
+     * Create a mock InventoryPush action
+     *
+     * @return MockObject
+     */
+    public function createInventoryPushActionMock(): MockObject
+    {
+        $mock = $this->createMock('Auctane\Api\Model\Action\InventoryPush');
+        
+        $mock->method('execute')
+            ->willReturn([
+                'success' => true,
+                'products_updated' => 0
+            ]);
+            
+        return $mock;
+    }
+
+    /**
+     * Create a mock Order Repository
+     *
+     * @return MockObject
+     */
+    public function createOrderRepositoryMock(): MockObject
+    {
+        $mock = $this->createMock('Magento\Sales\Api\OrderRepositoryInterface');
+        
+        $mock->method('getList')
+            ->willReturn([]);
+            
+        $mock->method('get')
+            ->willReturn($this->createOrderMock());
+            
+        return $mock;
+    }
+
+    /**
+     * Create a mock Order
+     *
+     * @return MockObject
+     */
+    public function createOrderMock(): MockObject
+    {
+        $mock = $this->createMock('Magento\Sales\Model\Order');
+        
+        $mock->method('getIncrementId')
+            ->willReturn('000000001');
+            
+        $mock->method('getStatus')
+            ->willReturn('processing');
+            
+        return $mock;
+    }
+
+    /**
+     * Create a mock Shipment Repository
+     *
+     * @return MockObject
+     */
+    public function createShipmentRepositoryMock(): MockObject
+    {
+        $mock = $this->createMock('Magento\Sales\Api\ShipmentRepositoryInterface');
+        
+        $mock->method('save')
+            ->willReturnArgument(0);
+            
+        return $mock;
+    }
+
+    /**
+     * Create a mock Track Repository
+     *
+     * @return MockObject
+     */
+    public function createTrackRepositoryMock(): MockObject
+    {
+        $mock = $this->createMock('Magento\Sales\Api\ShipmentTrackRepositoryInterface');
+        
+        $mock->method('save')
+            ->willReturnArgument(0);
+            
+        return $mock;
+    }
+
+    /**
+     * Configure ScopeConfig mock with values for specific scope
+     *
+     * @param array $values Configuration values
+     * @param string $scope Scope type (default, website, store)
+     * @param int $scopeId Scope ID
+     */
+    public function configureScopeConfigMock(array $values, string $scope = 'default', int $scopeId = 0): void
+    {
+        // This method would be used to configure existing scope config mocks
+        // Implementation depends on how the ScopeConfig mock is structured
+    }
+
+    /**
      * Create a generic mock object
      *
      * @param string $className Class name to mock
