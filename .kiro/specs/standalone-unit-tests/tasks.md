@@ -6,20 +6,20 @@
   - Create test directory structure mirroring the Api/ module structure
   - _Requirements: 1.1, 1.3_
 
-- [ ] 2. Create base testing framework and mock infrastructure
-  - [ ] 2.1 Implement base TestCase class with common setup methods
+- [x] 2. Create base testing framework and mock infrastructure
+  - [x] 2.1 Implement base TestCase class with common setup methods
     - Write TestCase class extending PHPUnit\Framework\TestCase
     - Add methods for creating mock objects and test data
     - Implement setUp and tearDown methods for test isolation
     - _Requirements: 4.1, 5.1_
 
-  - [ ] 2.2 Create MockFactory for consistent mock object creation
+  - [x] 2.2 Create MockFactory for consistent mock object creation
     - Implement MockFactory class with methods for all Magento dependencies
     - Add methods for creating ScopeConfigInterface, StoreManagerInterface, JsonFactory mocks
     - Create HTTP request/response mock creation methods
     - _Requirements: 4.1, 4.2_
 
-  - [ ] 2.3 Implement core Magento framework mocks
+  - [x] 2.3 Implement core Magento framework mocks
     - Create mock implementations for ObjectManager, ScopeConfigInterface
     - Implement StoreManagerInterface and Store entity mocks
     - Create JsonFactory and Json result mocks for controller testing
