@@ -38,6 +38,7 @@
         "test": "phpunit",
         "test-coverage": "phpunit --coverage-html coverage/html --coverage-text",
         "test-coverage-xml": "phpunit --coverage-xml coverage/xml --coverage-clover coverage/clover.xml",
+        "test-coverage-ci": "phpunit --coverage-clover coverage/clover.xml --coverage-cobertura coverage/cobertura.xml",
         "phpstan": "phpstan analyse",
         "phpcs": "phpcs --standard=phpcs.xml",
         "phpcbf": "phpcbf --standard=phpcs.xml",
@@ -49,7 +50,8 @@
         "analyze": [
             "@test",
             "@quality"
-        ]
+        ],
+        "install-coverage": "echo 'To enable code coverage, install Xdebug or PCOV:\\n  - Xdebug: https://xdebug.org/docs/install\\n  - PCOV: composer require --dev pcov/clobber && pecl install pcov'"
     },
     "config": {
         "sort-packages": true,

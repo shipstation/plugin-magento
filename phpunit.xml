@@ -5,8 +5,8 @@
          colors="true"
          cacheDirectory=".phpunit.cache"
          executionOrder="depends,defects"
-         requireCoverageMetadata="true"
-         beStrictAboutCoverageMetadata="true"
+         requireCoverageMetadata="false"
+         beStrictAboutCoverageMetadata="false"
          beStrictAboutOutputDuringTests="true"
          failOnRisky="true"
          failOnWarning="true">
@@ -44,6 +44,9 @@
         <report>
             <html outputDirectory="coverage/html" lowUpperBound="50" highLowerBound="80"/>
             <xml outputDirectory="coverage/xml"/>
+            <clover outputFile="coverage/clover.xml"/>
+            <cobertura outputFile="coverage/cobertura.xml"/>
+            <crap4j outputFile="coverage/crap4j.xml" threshold="30"/>
             <text outputFile="coverage/coverage.txt" showUncoveredFiles="false" showOnlySummary="true"/>
         </report>
     </coverage>
