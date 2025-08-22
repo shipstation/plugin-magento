@@ -412,6 +412,11 @@ class MockFactory
             throw new \RuntimeException('TestCase must be set before creating mocks');
         }
         
-        return $this->testCase->createMock($className);
+        // Use reflection to access the protected createMock method
+        $reflection = new \ReflectionClass($this->testCase);
+        $method = $reflection->getMethod('createMock');
+        $method->setAccessible(true);
+        
+        return $method->invoke($this->testCase, $className);
     }
 }

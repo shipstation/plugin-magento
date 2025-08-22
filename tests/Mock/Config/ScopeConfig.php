@@ -40,7 +40,12 @@ class ScopeConfig
      */
     public function createMock(): MockObject
     {
-        $mock = $this->testCase->createMock('Magento\Framework\App\Config\ScopeConfigInterface');
+        // Use reflection to access the protected createMock method
+        $reflection = new \ReflectionClass($this->testCase);
+        $method = $reflection->getMethod('createMock');
+        $method->setAccessible(true);
+        
+        $mock = $method->invoke($this->testCase, 'Magento\Framework\App\Config\ScopeConfigInterface');
         
         $mock->method('getValue')
             ->willReturnCallback([$this, 'getValue']);

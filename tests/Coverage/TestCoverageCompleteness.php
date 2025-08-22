@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Auctane\Api\Test\Coverage;
+namespace Auctane\Api\Tests\Coverage;
 
-use Auctane\Api\Test\Utilities\TestCase;
+use Auctane\Api\Tests\Utilities\TestCase;
 
 /**
  * Test coverage completeness validation

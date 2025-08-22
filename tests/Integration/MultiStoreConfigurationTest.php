@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Auctane\Api\Test\Integration;
+namespace Auctane\Api\Tests\Integration;
 
-use Auctane\Api\Test\Utilities\TestCase;
-use Auctane\Api\Test\Fixtures\Config\ConfigFixture;
+use Auctane\Api\Tests\Utilities\TestCase;
+use Auctane\Api\Tests\Fixtures\Config\ConfigFixture;
 use Auctane\Api\Model\Authorization;
 use Auctane\Api\Controller\SalesOrdersExport\Index as SalesOrdersExportController;
 use Auctane\Api\Exception\AuthorizationException;
@@ -58,7 +58,7 @@ class MultiStoreConfigurationTest extends TestCase
         ], 'store', 1);
         
         $request1 = $this->mockFactory->createHttpRequestMock();
-        $request1->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $store1ApiKey . "}");
+        $request1->method('getHeader')->with('Authorization')->willReturn("Bearer {$store1ApiKey}");
         $request1->method('getParam')->with('store_id')->willReturn('1');
         
         $result1 = $this->authorization->isAuthorized($request1);
@@ -70,7 +70,7 @@ class MultiStoreConfigurationTest extends TestCase
         ], 'store', 2);
         
         $request2 = $this->mockFactory->createHttpRequestMock();
-        $request2->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $store2ApiKey . "}");
+        $request2->method('getHeader')->with('Authorization')->willReturn("Bearer {$store2ApiKey}");
         $request2->method('getParam')->with('store_id')->willReturn('2');
         
         $result2 = $this->authorization->isAuthorized($request2);
@@ -82,7 +82,7 @@ class MultiStoreConfigurationTest extends TestCase
         ], 'store', 3);
         
         $request3 = $this->mockFactory->createHttpRequestMock();
-        $request3->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $store3ApiKey . "}");
+        $request3->method('getHeader')->with('Authorization')->willReturn("Bearer {$store3ApiKey}");
         $request3->method('getParam')->with('store_id')->willReturn('3');
         
         $result3 = $this->authorization->isAuthorized($request3);
@@ -109,7 +109,7 @@ class MultiStoreConfigurationTest extends TestCase
         
         // Try to access Store 1 with Store 2's API key
         $request = $this->mockFactory->createHttpRequestMock();
-        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $store2ApiKey . "}");
+        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$store2ApiKey}");
         $request->method('getParam')->with('store_id')->willReturn('1');
         
         $result = $this->authorization->isAuthorized($request);
@@ -139,7 +139,7 @@ class MultiStoreConfigurationTest extends TestCase
                 'action' => 'export',
                 'store_id' => str_replace('store', '', $storeId)
             ]);
-            $request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $config . "['api_key']}");
+            $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$config['api_key']}");
             
             // Act: Execute export for this store
             $result = $this->controller->execute();
@@ -172,7 +172,7 @@ class MultiStoreConfigurationTest extends TestCase
         $request = $this->mockFactory->createHttpRequestMock([
             'store_id' => '1'
         ]);
-        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $apiKey . "}");
+        $request->method('getHeader')->with('Authorization')->willReturn("Bearer {$apiKey}");
         
         // Act & Assert: Verify disabled store rejects requests
         $this->expectException(AuthorizationException::class);
@@ -205,7 +205,7 @@ class MultiStoreConfigurationTest extends TestCase
         
         // Test default configuration (store without override)
         $defaultRequest = $this->mockFactory->createHttpRequestMock();
-        $defaultRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $defaultApiKey . "}");
+        $defaultRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {$defaultApiKey}");
         $defaultRequest->method('getParam')->with('store_id')->willReturn('2');
         
         $defaultResult = $this->authorization->isAuthorized($defaultRequest);
@@ -213,7 +213,7 @@ class MultiStoreConfigurationTest extends TestCase
         
         // Test store-specific configuration
         $storeRequest = $this->mockFactory->createHttpRequestMock();
-        $storeRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $storeSpecificApiKey . "}");
+        $storeRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {$storeSpecificApiKey}");
         $storeRequest->method('getParam')->with('store_id')->willReturn('1');
         
         $storeResult = $this->authorization->isAuthorized($storeRequest);
@@ -221,7 +221,7 @@ class MultiStoreConfigurationTest extends TestCase
         
         // Test that store 1 rejects default API key
         $invalidRequest = $this->mockFactory->createHttpRequestMock();
-        $invalidRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $defaultApiKey . "}");
+        $invalidRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {$defaultApiKey}");
         $invalidRequest->method('getParam')->with('store_id')->willReturn('1');
         
         $invalidResult = $this->authorization->isAuthorized($invalidRequest);
@@ -253,7 +253,7 @@ class MultiStoreConfigurationTest extends TestCase
         
         // Test Website 1 authorization
         $website1Request = $this->mockFactory->createHttpRequestMock();
-        $website1Request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $website1ApiKey . "}");
+        $website1Request->method('getHeader')->with('Authorization')->willReturn("Bearer {$website1ApiKey}");
         $website1Request->method('getParam')->with('website_id')->willReturn('1');
         
         $website1Result = $this->authorization->isAuthorized($website1Request);
@@ -261,7 +261,7 @@ class MultiStoreConfigurationTest extends TestCase
         
         // Test Website 2 authorization
         $website2Request = $this->mockFactory->createHttpRequestMock();
-        $website2Request->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $website2ApiKey . "}");
+        $website2Request->method('getHeader')->with('Authorization')->willReturn("Bearer {$website2ApiKey}");
         $website2Request->method('getParam')->with('website_id')->willReturn('2');
         
         $website2Result = $this->authorization->isAuthorized($website2Request);
@@ -269,7 +269,7 @@ class MultiStoreConfigurationTest extends TestCase
         
         // Test cross-website rejection
         $crossWebsiteRequest = $this->mockFactory->createHttpRequestMock();
-        $crossWebsiteRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {" . $website1ApiKey . "}");
+        $crossWebsiteRequest->method('getHeader')->with('Authorization')->willReturn("Bearer {$website1ApiKey}");
         $crossWebsiteRequest->method('getParam')->with('website_id')->willReturn('2');
         
         $crossWebsiteResult = $this->authorization->isAuthorized($crossWebsiteRequest);

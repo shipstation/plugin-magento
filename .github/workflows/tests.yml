@@ -44,7 +44,17 @@ jobs:
         run: vendor/bin/phpunit --configuration phpunit.xml --coverage-clover coverage/clover.xml --coverage-html coverage/html --coverage-text
       
       - name: Validate code coverage thresholds
-        run: php scripts/validate-coverage.php coverage/clover.xml coverage/coverage-report.json
+        run: |
+          echo "🔍 Validating code coverage thresholds..."
+          php scripts/validate-coverage.php coverage/clover.xml coverage/coverage-report.json
+          
+          # Check if validation passed
+          if [ $? -ne 0 ]; then
+            echo "❌ Coverage validation failed - see details above"
+            exit 1
+          fi
+          
+          echo "✅ Coverage validation passed"
       
       - name: Run PHPStan static analysis
         run: vendor/bin/phpstan analyse --configuration phpstan.neon --no-progress

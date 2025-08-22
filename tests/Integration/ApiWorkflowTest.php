@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Auctane\Api\Test\Integration;
+namespace Auctane\Api\Tests\Integration;
 
-use Auctane\Api\Test\Utilities\TestCase;
-use Auctane\Api\Test\Fixtures\Orders\OrderFixture;
-use Auctane\Api\Test\Fixtures\Requests\RequestFixture;
-use Auctane\Api\Test\Fixtures\Config\ConfigFixture;
+use Auctane\Api\Tests\Utilities\TestCase;
+use Auctane\Api\Tests\Fixtures\Orders\OrderFixture;
+use Auctane\Api\Tests\Fixtures\Requests\RequestFixture;
+use Auctane\Api\Tests\Fixtures\Config\ConfigFixture;
 use Auctane\Api\Controller\SalesOrdersExport\Index as SalesOrdersExportController;
 use Auctane\Api\Controller\ShipmentNotification\Index as ShipmentNotificationController;
 use Auctane\Api\Controller\InventoryFetch\Index as InventoryFetchController;

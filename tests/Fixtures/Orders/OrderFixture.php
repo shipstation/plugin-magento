@@ -96,12 +96,12 @@ class OrderFixture
 
         for ($i = 1; $i <= $itemCount; $i++) {
             $items[] = [
-                'line_item_id' => "ITEM-" . str_pad(" . $i . ", 3, '0', STR_PAD_LEFT),
+                'line_item_id' => "ITEM-" . str_pad($i, 3, '0', STR_PAD_LEFT),
                 'description' => "Test Product {$i}",
                 'quantity' => rand(1, 5),
                 'unit_price' => round(rand(1000, 9999) / 100, 2),
                 'product' => [
-                    'product_id' => "PROD-" . str_pad(" . $i . ", 3, '0', STR_PAD_LEFT),
+                    'product_id' => "PROD-" . str_pad($i, 3, '0', STR_PAD_LEFT),
                     'name' => "Test Product {$i}",
                     'sku' => "TEST-SKU-" . str_pad($i, 3, '0', STR_PAD_LEFT),
                     'weight' => [
