@@ -1,15 +1,14 @@
 <?php
 
-namespace Auctane\Api\Tests\Mock\Framework;
+namespace Auctane\Api\Tests\Mock\Framework\Controller\Result;
 
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 
 /**
- * Mock implementation of Magento's JsonFactory
- * Provides JSON response creation functionality for testing
+ * Mock implementation of Magento's JsonFactory for testing
  */
-class JsonFactory
+class JsonFactoryMock
 {
     /**
      * @var TestCase
@@ -27,7 +26,7 @@ class JsonFactory
     }
 
     /**
-     * Create mock JsonFactory instance
+     * Create a mock JsonFactory
      *
      * @return MockObject
      */
@@ -35,34 +34,24 @@ class JsonFactory
     {
         $mock = $this->testCase->createMock('Magento\Framework\Controller\Result\JsonFactory');
         
-        $mock->method('create')
-            ->willReturnCallback([$this, 'create']);
-            
+        // Mock the create method to return a Json result mock
+        $jsonResult = $this->createJsonResultMock();
+        $mock->method('create')->willReturn($jsonResult);
+        
         return $mock;
     }
 
     /**
-     * Create JSON result object
+     * Create a mock Json result object
      *
      * @return MockObject
      */
-    public function create(): MockObject
-    {
-        return $this->createJsonResult();
-    }
-
-    /**
-     * Create mock JSON result object
-     *
-     * @return MockObject
-     */
-    private function createJsonResult(): MockObject
+    private function createJsonResultMock(): MockObject
     {
         $mock = $this->testCase->createMock('Magento\Framework\Controller\Result\Json');
         
         $responseData = null;
         $httpResponseCode = 200;
-        $headers = [];
         
         $mock->method('setData')
             ->willReturnCallback(function ($data) use (&$responseData, $mock) {
@@ -76,12 +65,6 @@ class JsonFactory
                 return $mock;
             });
             
-        $mock->method('setHeader')
-            ->willReturnCallback(function ($name, $value, $replace = false) use (&$headers, $mock) {
-                $headers[$name] = $value;
-                return $mock;
-            });
-            
         $mock->method('getData')
             ->willReturnCallback(function () use (&$responseData) {
                 return $responseData;
@@ -91,19 +74,7 @@ class JsonFactory
             ->willReturnCallback(function () use (&$httpResponseCode) {
                 return $httpResponseCode;
             });
-            
-        $mock->method('getHeaders')
-            ->willReturnCallback(function () use (&$headers) {
-                return $headers;
-            });
-            
-        // Add method to render JSON for testing
-        $mock->method('renderResult')
-            ->willReturnCallback(function () use (&$responseData, &$httpResponseCode) {
-                http_response_code($httpResponseCode);
-                return json_encode($responseData);
-            });
-            
+        
         return $mock;
     }
 }

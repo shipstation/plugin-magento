@@ -7,7 +7,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Auctane\Api\Tests\Mock\Framework\ObjectManager;
 use Auctane\Api\Tests\Mock\Config\ScopeConfig;
 use Auctane\Api\Tests\Mock\Store\StoreManager;
-use Auctane\Api\Tests\Mock\Framework\JsonFactory;
+use Auctane\Api\Tests\Mock\Framework\Controller\Result\JsonFactoryMock;
 
 /**
  * Factory class for creating consistent mock objects for Magento dependencies
@@ -75,7 +75,7 @@ class MockFactory
      */
     public function createJsonFactoryMock(): MockObject
     {
-        $jsonFactory = new JsonFactory($this->testCase);
+        $jsonFactory = new JsonFactoryMock($this->testCase);
         return $jsonFactory->createMock();
     }
 

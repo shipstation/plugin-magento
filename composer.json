@@ -29,7 +29,9 @@
         "psr-4": {
             "Auctane\\Api\\Tests\\": "tests/",
             "Magento\\Framework\\": "tests/Mock/Framework/",
-            "Magento\\Framework\\Exception\\": "tests/Mock/Framework/Exception/"
+            "Magento\\Framework\\Exception\\": "tests/Mock/Framework/Exception/",
+            "Magento\\Framework\\App\\": "tests/Mock/Framework/App/",
+            "Magento\\Framework\\Module\\": "tests/Mock/Framework/Module/"
         }
     },
     "scripts": {
