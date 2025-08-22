@@ -1,0 +1,18 @@
+parameters:
+    level: 6
+    paths:
+        - Api
+    excludePaths:
+        - Api/view
+        - Api/i18n
+        - Api/registration.php
+    ignoreErrors:
+        # Ignore Magento-specific patterns that can't be resolved without full installation
+        - '#Call to an undefined method.*ObjectManagerInterface#'
+        - '#Access to an undefined property.*_objectManager#'
+        - '#Class.*not found#'
+    bootstrapFiles:
+        - tests/bootstrap.php
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false
+    reportUnmatchedIgnoredErrors: false

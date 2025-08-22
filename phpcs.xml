@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<ruleset name="Auctane_Api">
+    <description>PHP CodeSniffer configuration for Auctane_Api module</description>
+    
+    <!-- Include the PSR-12 coding standard -->
+    <rule ref="PSR12"/>
+    
+    <!-- Additional rules for better code quality -->
+    <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+    <rule ref="Generic.Classes.DuplicateClassName"/>
+    <rule ref="Generic.CodeAnalysis.EmptyStatement"/>
+    <rule ref="Generic.CodeAnalysis.UnconditionalIfStatement"/>
+    <rule ref="Generic.CodeAnalysis.UnnecessaryFinalModifier"/>
+    <rule ref="Generic.CodeAnalysis.UselessOverridingMethod"/>
+    <rule ref="Generic.Commenting.Todo"/>
+    <rule ref="Generic.Files.ByteOrderMark"/>
+    <rule ref="Generic.Files.LineEndings"/>
+    <rule ref="Generic.Formatting.DisallowMultipleStatements"/>
+    <rule ref="Generic.Functions.CallTimePassByReference"/>
+    <rule ref="Generic.NamingConventions.UpperCaseConstantName"/>
+    <rule ref="Generic.PHP.DeprecatedFunctions"/>
+    <rule ref="Generic.PHP.DisallowShortOpenTag"/>
+    <rule ref="Generic.PHP.ForbiddenFunctions"/>
+    <rule ref="Generic.PHP.NoSilencedErrors"/>
+    <rule ref="Generic.WhiteSpace.DisallowTabIndent"/>
+    
+    <!-- Files to check -->
+    <file>Api</file>
+    <file>tests</file>
+    
+    <!-- Files to exclude -->
+    <exclude-pattern>Api/view/*</exclude-pattern>
+    <exclude-pattern>Api/i18n/*</exclude-pattern>
+    <exclude-pattern>Api/registration.php</exclude-pattern>
+    <exclude-pattern>vendor/*</exclude-pattern>
+    <exclude-pattern>coverage/*</exclude-pattern>
+    <exclude-pattern>*.phtml</exclude-pattern>
+    
+    <!-- Show progress -->
+    <arg name="colors"/>
+    <arg value="p"/>
+    
+    <!-- Use cache for faster subsequent runs -->
+    <arg name="cache" value=".phpcs-cache"/>
+    
+    <!-- Set memory limit -->
+    <ini name="memory_limit" value="512M"/>
+</ruleset>
