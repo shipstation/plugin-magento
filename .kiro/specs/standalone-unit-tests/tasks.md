@@ -51,20 +51,20 @@
     - Verify each exception returns correct HTTP status codes
     - _Requirements: 3.3, 5.3_
 
-- [ ] 5. Implement model testing suite
-  - [ ] 5.1 Create Authorization model tests
+- [x] 5. Implement model testing suite
+  - [x] 5.1 Create Authorization model tests
     - Write tests for Authorization::isAuthorized method with mocked dependencies
     - Test multi-store API key validation scenarios
     - Create tests for invalid API key and empty configuration scenarios
     - _Requirements: 3.1, 4.3_
 
-  - [ ] 5.2 Test Action model classes (Export and ShipNotify)
+  - [x] 5.2 Test Action model classes (Export and ShipNotify)
     - Create unit tests for Export action with mocked order repository
     - Implement tests for ShipNotify action with mocked shipment creation
     - Test error handling and exception scenarios in action classes
     - _Requirements: 3.1, 4.3_
 
-  - [ ] 5.3 Test OrderSourceAPI model classes
+  - [x] 5.3 Test OrderSourceAPI model classes
     - Create tests for all data transfer objects in Models/ directory
     - Test request/response serialization and validation
     - Implement tests for data model relationships and constraints
