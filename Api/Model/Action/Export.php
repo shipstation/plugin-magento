@@ -481,8 +481,10 @@ class Export
 
             if ($this->_priceType) {
                 $price = $orderItem->getBasePrice();
+                $taxAmount = $orderItem->getBaseTaxAmount();
             } else {
                 $price = $orderItem->getPrice();
+                $taxAmount = $orderItem->getTaxAmount();
             }
 
             $foreighWeight = $this->weightAdapter->toForeignWeight($orderItem->getWeight());
@@ -513,6 +515,10 @@ class Export
                         $price = $this->_extractPriceFromParentItem($parentItem);
                     }
 
+                    if ($taxAmount == '0.0000' || $taxAmount == null) {
+                        $taxAmount = $this->_extractPriceFromParentItem($parentItem);
+                    }
+
                     $name = $parentItem->getName();
                 }
 
@@ -531,6 +537,10 @@ class Export
                 $price = '0.00';
             }
 
+            if (empty($taxAmount)) {
+                $taxAmount = '0.00';
+            }
+
             $this->_xmlData .= "\t<Item>\n";
 
             $this->addXmlElement("SKU", "<![CDATA[{$orderItem->getSku()}]]>");
@@ -539,6 +549,7 @@ class Export
             $this->addXmlElement("Weight", "<![CDATA[{$foreighWeight->getValue()}]]>");
             $this->addXmlElement("WeightUnits", "<![CDATA[{$foreighWeight->getUnit()}]]>");
             $this->addXmlElement("UnitPrice", "<![CDATA[{$price}]]>");
+            $this->addXmlElement("TaxAmount", "<![CDATA[{$taxAmount}]]>");
             $this->addXmlElement("Quantity", "<![CDATA[". (int)$orderItem->getQtyOrdered() ."]]>");
 
             $upcValue = $this->_getUPC($product);
@@ -571,6 +582,17 @@ class Export
         return $this->_priceType
             ? $parentItem->getBasePrice()
             : $parentItem->getPrice();
+    }
+
+    /**
+     * @param OrderItemInterface $parentItem
+     * @return float|null
+     */
+    private function _extractTaxAmountFromParentItem(OrderItemInterface $parentItem)
+    {
+        return $this->_priceType
+            ? $parentItem->getBaseTaxAmount()
+            : $parentItem->getTaxAmount();
     }
 
     /**
