@@ -29,7 +29,15 @@ jobs:
             mv composer.json.bak composer.json
           "
 
-    # Step 3: Annotate PR with violations
+    # Step 3: Install cs2pr for annotations
+    - name: Install cs2pr
+      if: always()
+      run: |
+        curl -L https://github.com/staabm/annotate-pull-request-from-checkstyle/releases/latest/download/cs2pr -o cs2pr
+        chmod +x cs2pr
+        sudo mv cs2pr /usr/local/bin/
+
+    # Step 4: Annotate PR with violations
     - name: Annotate Code Issues
       if: always()
       run: |
