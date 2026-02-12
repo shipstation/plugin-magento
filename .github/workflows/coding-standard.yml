@@ -20,8 +20,7 @@ jobs:
           markoshust/magento-php:8.3-fpm-2 \
           bash -c "
             cd /var/www/html/src/app/code/Auctane &&
-            composer require --dev magento/magento-coding-standard &&
             composer config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true &&
-            composer install &&
+            composer require --dev magento/magento-coding-standard &&
             vendor/bin/phpcs --standard=Magento2 --runtime-set ignore_warnings_on_exit 1 /var/www/html/src/app/code/Auctane
           "
