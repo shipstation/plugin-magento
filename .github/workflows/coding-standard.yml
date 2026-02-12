@@ -15,6 +15,7 @@ jobs:
     - name: Generate CodeSniffer Report
       run: |
         docker run --rm \
+          --user $(id -u):$(id -g) \
           -v ${{ github.workspace }}:/var/www/html/src/app/code/Auctane \
           markoshust/magento-php:8.3-fpm-2 \
           bash -c "
