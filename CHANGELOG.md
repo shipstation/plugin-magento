@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.5.8] - 2026-02-12
+### Added
+- Added TaxAmount field to item-level data in order exports
+- Tax amount now includes both base and store currency values based on price type configuration
+
 ## [2.5.7] - 2025-08-22
 ### Update
 - Replace signatures like Type $x = null with ?Type $x = null (or Type|null)
