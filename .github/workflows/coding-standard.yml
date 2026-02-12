@@ -13,6 +13,7 @@ jobs:
 
     # Step 2: Run CodeSniffer in Docker
     - name: Generate CodeSniffer Report
+      continue-on-error: true
       run: |
         docker run --rm \
           --user $(id -u):$(id -g) \
@@ -24,6 +25,14 @@ jobs:
             sed -i 's/\"registration.php\"//' composer.json &&
             composer config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true &&
             composer require --dev magento/magento-coding-standard &&
-            vendor/bin/phpcs --standard=Magento2 --runtime-set ignore_warnings_on_exit 1 /var/www/html/src/app/code/Auctane/Api &&
+            vendor/bin/phpcs --standard=Magento2 --report=checkstyle --report-file=phpcs-report.xml /var/www/html/src/app/code/Auctane/Api || true &&
             mv composer.json.bak composer.json
           "
+
+    # Step 3: Annotate PR with violations
+    - name: Annotate Code Issues
+      if: always()
+      run: |
+        if [ -f Api/phpcs-report.xml ]; then
+          cat Api/phpcs-report.xml | cs2pr --graceful-warnings
+        fi
