@@ -1,16 +1,18 @@
 {
   "name": "auctane/api",
   "description": "ShipStation is a web-based shipping solution that is integrated with the Magento API for retrieving order information and updating shipping details.",
-  "version": "2.5.8",
   "type": "magento2-module",
   "license": [
     "OSL-3.0",
     "AFL-3.0"
   ],
+  "require": {
+    "php": "~8.1.0||~8.2.0||~8.3.0||~8.4.0",
+    "magento/framework": "103.*"
+  },
   "autoload": {
     "files": [
-
-   "registration.php"
+      "registration.php"
     ],
     "psr-4": {
       "Auctane\\Api\\": ""
