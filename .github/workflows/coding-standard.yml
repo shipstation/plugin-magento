@@ -20,13 +20,12 @@ jobs:
           -v ${{ github.workspace }}:/var/www/html/src/app/code/Auctane \
           markoshust/magento-php:8.3-fpm-2 \
           bash -c "
-            cd /var/www/html/src/app/code/Auctane/Api &&
-            cp composer.json composer.json.bak &&
-            sed -i 's/\"registration.php\"//' composer.json &&
+            mkdir -p /tmp/phpcs-setup &&
+            cd /tmp/phpcs-setup &&
+            echo '{}' > composer.json &&
             composer config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true &&
             composer require --dev magento/magento-coding-standard &&
-            vendor/bin/phpcs --standard=Magento2 --report=checkstyle --report-file=phpcs-report.xml --ignore=*/vendor/*,*/Test/* /var/www/html/src/app/code/Auctane/Api || true &&
-            mv composer.json.bak composer.json
+            vendor/bin/phpcs --standard=Magento2 --report=checkstyle --report-file=/var/www/html/src/app/code/Auctane/Api/phpcs-report.xml --ignore=*/vendor/*,*/Test/* /var/www/html/src/app/code/Auctane/Api || true
           "
 
     # Step 3: Install cs2pr for annotations
