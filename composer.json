@@ -12,10 +12,10 @@
   },
   "autoload": {
     "files": [
-      "registration.php"
+      "Api/registration.php"
     ],
     "psr-4": {
-      "Auctane\\Api\\": ""
+      "Auctane\\Api\\": "Api/"
     }
   }
 }
