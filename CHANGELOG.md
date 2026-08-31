@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.5.9] - 2026-08-31
+### Fixed
+- Added `int` return type to `DebugManagementCommand::execute()` for compatibility with Symfony Console 7 (used by Magento 2.4.9), which enforces a native `int` return type on `Command::execute()`. Previously caused a PHP fatal error that broke every `bin/magento` CLI command.
+
 ## [2.5.8] - 2026-02-12
 ### Added
 - Added TaxAmount field to item-level data in order exports

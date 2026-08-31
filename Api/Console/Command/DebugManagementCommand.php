@@ -51,10 +51,12 @@ class DebugManagementCommand extends Command
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
-     * @return int|void|null
+     * @return int
      */
-    public function execute(InputInterface $input, OutputInterface $output)
+    public function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->config->save(self::CONFIG_DEBUG_PATH, $input->getArgument(self::ARGUMENT_DEBUG_STATUS));
+
+        return 0;
     }
 }
