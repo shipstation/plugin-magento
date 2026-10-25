@@ -135,7 +135,7 @@ class Index extends BaseAuthorizedController implements HttpPostActionInterface
             }
         }
         if (!$inventoryExists) {
-            throw new NotFoundException('Inventory not found for sku ' . $sku . ' and source code ' . $source_code);
+            throw new NotFoundException('Inventory not found for SKU ' . $sku . ' and source code ' . $source_code);
         }
         return $inventoryExists;
     }

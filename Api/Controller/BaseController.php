@@ -59,7 +59,7 @@ abstract class BaseController implements HttpActionInterface, CsrfAwareActionInt
     /**
      * This method determines whether a caller is authorized to make this call.
      *
-     * @returns bool
+     * @return bool
      */
     protected function getIsAuthorized():bool
     {

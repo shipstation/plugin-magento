@@ -21,7 +21,7 @@ class SourceDetails
     /**
      * @var string|null
      * @description The name for the order source
-     * @example "Justin's Flower Imporiuim"
+     * @example "Justin's Flower Emporium"
      */
     public ?string $source_name;
 

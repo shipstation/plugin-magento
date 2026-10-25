@@ -20,7 +20,7 @@ class ShippingPreferences
     public ?bool $insurance_requested;
     /** @var bool|mixed|null Indicates whether this order is nonmachinable (must be sorted outside of the standard, automated mail process) */
     public ?bool $non_machinable;
-    /** @var bool|mixed|null Indicates whether this order should be delivered on a saturday */
+    /** @var bool|mixed|null Indicates whether this order should be delivered on a Saturday */
     public ?bool $saturday_delivery;
     /** @var bool|mixed|null Indicates whether to allow display of postage paid on the shipping label */
     public ?bool $show_postage;
@@ -42,7 +42,7 @@ class ShippingPreferences
     public ?string $shipping_service;
     /** @var string|mixed|null The requested package type for this fulfillment */
     public ?string $package_type;
-    /** @var float|null The amount of money being request for insurance on this shipment */
+    /** @var float|null The amount of money being requested for insurance on this shipment */
     public ?float $insured_value;
     /** @var bool|mixed|null true if the order was placed under the terms of the order source's premium program (Amazon Prime, Walmart+, etc) */
     public ?bool $is_premium_program;
