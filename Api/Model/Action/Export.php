@@ -179,7 +179,7 @@ class Export
         $to = $this->toDateString($request->getParam('end_date'));
         $page = $request->getParam('page') ?? 1;
 
-        $this->_xmlData = "<?xml version=\"1.0\" encoding=\"utf-16\"?>\n";
+        $this->_xmlData = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 
         if ($from && $to) {
             $orders = $this->orderCollectionFactory->create()
